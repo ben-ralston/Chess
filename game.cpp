@@ -75,6 +75,7 @@ void Game::tryMove(int from[2], int to[2]) {
     if (inCheck(whiteTurn, from, to))
         return;
     makeMove(from, to);
+    updateCastle(from, to);
     whiteTurn = !whiteTurn;
 }
 
@@ -420,6 +421,18 @@ void Game::updateCastle(int from[2], int to[2]) {
     }
     if (from[0] == 0 && from[1] == 4) {
         blackKingsideCastle = false;
+        blackQueensideCastle = false;
+    }
+    if ((from[0] == 7 && from[1] == 7) || (to[0] == 7 && to[1] == 7)) {
+        whiteKingsideCastle = false;
+    }
+    if ((from[0] == 7 && from[1] == 0) || (to[0] == 7 && to[1] == 0)) {
+        whiteQueensideCastle = false;
+    }
+    if ((from[0] == 0 && from[1] == 7) || (to[0] == 0 && to[1] == 7)) {
+        blackKingsideCastle = false;
+    }
+    if ((from[0] == 0 && from[1] == 0) || (to[0] == 0 && to[1] == 0)) {
         blackQueensideCastle = false;
     }
 }
