@@ -74,15 +74,26 @@ void Game::tryMove(int from[2], int to[2]) {
         return;
     if (inCheck(whiteTurn, from, to))
         return;
+
+    Piece fromPiece = position[from[0]][from[1]];
     makeMove(from, to);
     updateCastle(from, to);
+    updatePassant(from, to, fromPiece);
     whiteTurn = !whiteTurn;
 }
 
 void Game::makeMove(int from[2], int to[2]) {
     if (makeCastleMove(from, to))
         return;
+    if (makePassantMove(from, to))
+        return;
     makeStandardMove(from, to);
+}
+
+void Game::makeStandardMove(int from[2], int to[2]) {
+    Piece toMove = position[from[0]][from[1]];
+    position[from[0]][from[1]] = None;
+    position[to[0]][to[1]] = toMove;
 }
 
 bool Game::makeCastleMove(int from[2], int to[2]) {
@@ -125,13 +136,29 @@ bool Game::makeCastleMove(int from[2], int to[2]) {
 }
 
 bool Game::makePassantMove(int from[2], int to[2]) {
+    int removeDirection;
+    int passantRow;
+    int passantCol;
 
-}
+    if (position[from[0]][from[1]] == WhitePawn) {
+        removeDirection = 1;
+        passantRow = 2;
+        passantCol = blackPassantPawn;
 
-void Game::makeStandardMove(int from[2], int to[2]) {
-    Piece toMove = position[from[0]][from[1]];
-    position[from[0]][from[1]] = None;
-    position[to[0]][to[1]] = toMove;
+    } else if (position[from[0]][from[1]] == BlackPawn) {
+        removeDirection = -1;
+        passantRow = 5;
+        passantCol = whitePassantPawn;
+    } else
+        return false;
+
+    if (to[0] == passantRow && to[1] == passantCol) {
+        makeStandardMove(from, to);
+        position[passantRow + removeDirection][passantCol] = None;
+        return true;
+    }
+
+    return false;
 }
 
 bool Game::validMove(int from[2], int to[2]) {
@@ -167,16 +194,22 @@ bool Game::validMove(int from[2], int to[2]) {
 
 bool Game::validPawnMove(int from[2], int to[2], bool white) {
     int direction;
-    if (white)
-        direction = -1;
-    else
-        direction = 1;
-
     bool firstMove;
-    if (white)
+    int passantRow;
+    int passantCol;
+
+    if (white) {
+        direction = -1;
         firstMove = from[0] == 6;
-    else
+        passantRow = 2;
+        passantCol = blackPassantPawn;
+    }
+    else {
+        direction = 1;
         firstMove = from[0] == 1;
+        passantRow = 5;
+        passantCol = whitePassantPawn;
+    }
 
     if (firstMove) {
         if (from[0] + 2 * direction == to[0]) {
@@ -193,6 +226,8 @@ bool Game::validPawnMove(int from[2], int to[2], bool white) {
         return emptySpace(to);
 
     if (to[1] - from[1] == 1 || from[1] - to[1] == 1){
+        if (to[0] == passantRow && to[1] == passantCol)
+            return true;
         return opponentPiece(to, white);
     }
 
@@ -436,3 +471,27 @@ void Game::updateCastle(int from[2], int to[2]) {
         blackQueensideCastle = false;
     }
 }
+
+void Game::updatePassant(int from[2], int to[2], Piece fromPiece) {
+    if (fromPiece == WhitePawn) {
+        if (to[0] - from[0] == -2) {
+            whitePassantPawn = to[1];
+            blackPassantPawn = -1;
+            return;
+        }
+    } else if (fromPiece == BlackPawn) {
+        if (to[0] - from[0] == 2) {
+            whitePassantPawn = -1;
+            blackPassantPawn = to[1];
+            return;
+        }
+    }
+
+    whitePassantPawn = -1;
+    blackPassantPawn = -1;
+}
+
+
+
+
+
