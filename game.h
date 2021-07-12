@@ -41,6 +41,7 @@ private:
     bool opponentPiece(int pos[2], bool white);
     bool inCheck(bool white);
     bool inCheck(bool white, int from[2], int to[2]);
+    bool isCheckMate();
     void updateCastle(int from[2], int to[2]);
     void updatePassant(int from[2], int to[2], Piece fromPiece);
 

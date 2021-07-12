@@ -80,6 +80,13 @@ void Game::tryMove(int from[2], int to[2]) {
     updateCastle(from, to);
     updatePassant(from, to, fromPiece);
     whiteTurn = !whiteTurn;
+
+    if (isCheckMate()) {
+        setStartingPosition();
+        whiteTurn = true;
+//        return;
+    }
+
 }
 
 void Game::makeMove(int from[2], int to[2]) {
@@ -471,6 +478,42 @@ bool Game::inCheck(bool white, int from[2], int to[2]) {
     }
 
     return check;
+}
+
+bool Game::isCheckMate() {
+    if (!inCheck(whiteTurn))
+        return false;
+
+    Piece piece;
+    int from[2];
+    int to[2];
+    for (int r_from = 0; r_from < 8; r_from++) {
+        for (int c_from = 0; c_from < 8; c_from++) {
+            piece = position[r_from][c_from];
+            if (whiteTurn && (piece < 0 || piece > 5))
+                continue;
+            if (!whiteTurn && (piece < 6))
+                continue;
+
+            cout << "Point 1\n";
+
+            from[0] = r_from;
+            from[1] = c_from;
+            for (int r_to = 0; r_to < 8; r_to++) {
+                to[0] = r_to;
+                for (int c_to = 0; c_to < 8; c_to++) {
+                    to[1] = c_to;
+                    if (validMove(from, to)) {
+                        cout << "Valid Move\n";
+                        if (!inCheck(whiteTurn, from, to))
+                            return false;
+                    }
+                }
+            }
+        }
+    }
+
+    return true;
 }
 
 void Game::updateCastle(int from[2], int to[2]) {
