@@ -27,6 +27,7 @@ private:
     void makeStandardMove(int from[2], int to[2]);
     bool makeCastleMove(int from[2], int to[2]);
     bool makePassantMove(int from[2], int to[2]);
+    bool makePromotionMove(int from[2], int to[2], bool autoQueen);
     bool validMove(int from[2], int to[2]);
     bool validPawnMove(int from[2], int to[2], bool white);
     bool validKnightMove(int from[2], int to[2], bool white);

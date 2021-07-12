@@ -87,6 +87,8 @@ void Game::makeMove(int from[2], int to[2]) {
         return;
     if (makePassantMove(from, to))
         return;
+    if (makePromotionMove(from, to, true))
+        return;
     makeStandardMove(from, to);
 }
 
@@ -155,6 +157,28 @@ bool Game::makePassantMove(int from[2], int to[2]) {
     if (to[0] == passantRow && to[1] == passantCol) {
         makeStandardMove(from, to);
         position[passantRow + removeDirection][passantCol] = None;
+        return true;
+    }
+
+    return false;
+}
+
+bool Game::makePromotionMove(int from[2], int to[2], bool autoQueen) {
+    int promRow;
+    Piece promPiece;
+
+    if (position[from[0]][from[1]] == WhitePawn) {
+        promRow = 0;
+        promPiece = WhiteQueen;
+    } else if (position[from[0]][from[1]] == BlackPawn) {
+        promRow = 7;
+        promPiece = BlackQueen;
+    } else
+        return false;
+
+    if (to[0] == promRow) {
+        position[from[0]][from[1]] = None;
+        position[to[0]][to[1]] = promPiece;
         return true;
     }
 
