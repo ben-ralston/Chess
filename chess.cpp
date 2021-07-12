@@ -2,43 +2,33 @@
 
 #include "chess.h"
 #include "ui_chess.h"
+#include "square.h"
 
 using namespace std;
 
-Chess::Chess(QWidget *parent)
-    : QMainWindow(parent)
+Chess::Chess(QWidget *parent) : QMainWindow(parent)
     , ui(new Ui::Chess)
 {
     ui->setupUi(this);
 
-    QWidget *board = this->findChild<QWidget *>("board");
-    QWidget *square;
-    QString rgb;
+    game = Game();
 
-    QWidget *squares [8][8];
+    selected[0] = -1;
+    selected[1] = -1;
+
+    QWidget *board = this->findChild<QWidget *>("board");
+    Square *square;
+
     for (int row = 0; row < 8; row++) {
         for (int col = 0; col < 8; col++) {
-
-            square = new QWidget(board);
-//            square->setObjectName(QString::fromUtf8("board"));
-            square->setGeometry(QRect(64 * row, 64 * col, 64, 64));
-            QSizePolicy sizePolicy(QSizePolicy::MinimumExpanding, QSizePolicy::MinimumExpanding);
-            sizePolicy.setHorizontalStretch(0);
-            sizePolicy.setVerticalStretch(0);
-            sizePolicy.setHeightForWidth(board->sizePolicy().hasHeightForWidth());
-            square->setSizePolicy(sizePolicy);
-            square->setMinimumSize(QSize(64, 64));
-//            board->setCursor(QCursor(Qt::OpenHandCursor));
-            if ((row + col) % 2 == 0) {
-                rgb = "background-color: rgb(238, 238, 210)";
-            } else {
-                rgb = "background-color: rgb(118, 150, 86)";
-            }
-            square->setStyleSheet(rgb);
-            squares[row][col] = square;
+            square = new Square(board, row, col);
+            connect(square, &Square::clicked, this, &Chess::mousePress);
+            connect(this, &Chess::setPiece, square, &Square::setPiece);
+            connect(this, &Chess::highlight, square, &Square::setHighlight);
         }
     }
 
+    updatePosition();
 }
 
 Chess::~Chess()
@@ -46,3 +36,42 @@ Chess::~Chess()
     delete ui;
 }
 
+void Chess::mousePress(int r, int c) {
+    bool selectable = game.isSelectable(r, c);
+
+    if (selected[0] == -1 && selectable) {
+        setSelected(r, c);
+    } else if (selected[0] == r && selected[1] == c) {
+        clearSelected();
+    } else if (selectable) {
+        setSelected(r, c);
+    } else if (selected[0] != -1) {
+        int to[2] = {r, c};
+        game.tryMove(selected, to);
+        clearSelected();
+        updatePosition();
+    }
+}
+
+void Chess::updatePosition() {
+    Piece * ptr = game.getPosition();
+    for (int r = 0; r < 8; r++) {
+        for (int c = 0; c < 8; c++) {
+            emit setPiece(r, c, ptr[8 * r + c]);
+        }
+    }
+ }
+
+void Chess::clearSelected() {
+    if (selected[0] == -1) return;
+    emit highlight(selected[0], selected[1]);
+    selected[0] = -1;
+    selected[1] = -1;
+}
+
+void Chess::setSelected(int r, int c) {
+    clearSelected();
+    selected[0] = r;
+    selected[1] = c;
+    emit highlight(r, c);
+}

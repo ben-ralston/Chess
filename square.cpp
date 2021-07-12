@@ -1,23 +1,83 @@
 #include "square.h"
+#include <iostream>
+#include <math.h>
 
-Square::Square(QWidget *parent, bool isLight, int rowNum, int colNum) : QWidget(parent)
+using namespace std;
+
+Square::Square(QWidget *parent, int rowNum, int colNum, Piece startPiece) : QWidget(parent)
 {
-    light = isLight;
     row = rowNum;
     col = colNum;
-
-    QString rgb;
-    if (light) {
-        rgb = "background-color: rgb(238, 238, 210)";
+    if ((row + col) % 2 == 0) {
+        base_color = QColor(238, 238, 210);
     } else {
-        rgb = "background-color: rgb(118, 150, 86)";
+        base_color = QColor(118, 150, 86);
     }
+    piece = startPiece;
+    highlight = false;
 
-    this->setStyleSheet(rgb);
+    setGeometry(QRect(64 * col, 64 * row, 64, 64));
+    QSizePolicy sizePolicy(QSizePolicy::MinimumExpanding, QSizePolicy::MinimumExpanding);
+    sizePolicy.setHorizontalStretch(0);
+    sizePolicy.setVerticalStretch(0);
+    sizePolicy.setHeightForWidth(this->sizePolicy().hasHeightForWidth());
+    setSizePolicy(sizePolicy);
+    setMinimumSize(QSize(64, 64));
+
+    loadImages();
+
 }
 
 
 Square::~Square()
 {
 
+}
+
+void Square::mousePressEvent(QMouseEvent *event)
+{
+    emit clicked(row, col);
+}
+
+void Square::paintEvent(QPaintEvent *event)
+{
+    QColor color;
+    QPainter painter(this);
+    if (highlight) {
+        color = QColor(192, 204, 60);
+    } else color = base_color;
+    painter.fillRect(this->rect(), color);
+
+    if (piece == -1) {
+        return;
+    }
+
+    float scale = .85;
+    int offset = (int) round((1 - scale) * 64 / 2);
+    int dim = 64 - 2 * offset;
+    QRect target = QRect(offset, offset, dim, dim);
+    int ind = (int) piece;
+    painter.drawImage(target, images[ind], QRect(0, 0, 60, 60));
+//    cout << x() << "  " << y() << "  " << width() << "  " << height() << '\n';
+}
+
+void Square::loadImages() {
+    QString name_template = "/Users/benralston/Programming/Chess_root/Chess/Images/%1.png";
+    QString filename;
+    for (int i = 0; i < 12; i++) {
+        filename = name_template.arg(i);
+        images[i] = QImage(filename);
+    }
+}
+
+void Square::setPiece(int r, int c, Piece newPiece) {
+    if (r == row && c == col)
+        piece = newPiece;
+    this->update();
+}
+
+void Square::setHighlight(int r, int c) {
+    if (r == row && c == col)
+        highlight = !highlight;
+    this->update();
 }

@@ -3,6 +3,8 @@
 
 #include <QMainWindow>
 #include <QWidget>
+#include "piece.h"
+#include "game.h"
 
 QT_BEGIN_NAMESPACE
 namespace Ui { class Chess; }
@@ -16,7 +18,20 @@ public:
     Chess(QWidget *parent = nullptr);
     ~Chess();
 
+public slots:
+    void mousePress(int r, int c);
+
+signals:
+    void setPiece(int r, int c, Piece p);
+    void highlight(int r, int c);
+
 private:
     Ui::Chess *ui;
+    Piece curPosition[8][8];
+    Game game;
+    int selected[2];
+    void updatePosition();
+    void clearSelected();
+    void setSelected(int r, int c);
 };
 #endif // CHESS_H
