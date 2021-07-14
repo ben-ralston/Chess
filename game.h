@@ -42,6 +42,11 @@ private:
     bool inCheck(bool white);
     bool inCheck(bool white, int from[2], int to[2]);
     bool isCheckMate();
+    bool isDraw();
+    bool isStalemate();
+    bool insufficientMaterial();
+    bool equalArrays(int a[12], int b[12]);
+    bool canMove();
     void updateCastle(int from[2], int to[2]);
     void updatePassant(int from[2], int to[2], Piece fromPiece);
 

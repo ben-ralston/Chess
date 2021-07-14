@@ -84,7 +84,14 @@ void Game::tryMove(int from[2], int to[2]) {
     if (isCheckMate()) {
         setStartingPosition();
         whiteTurn = true;
+        cout << "Win!\n";
 //        return;
+    }
+
+    if (isDraw()) {
+        setStartingPosition();
+        whiteTurn = true;
+        cout << "Draw!\n";
     }
 
 }
@@ -483,6 +490,99 @@ bool Game::isCheckMate() {
     if (!inCheck(whiteTurn))
         return false;
 
+    return !canMove();
+}
+
+bool Game::isDraw() {
+    return isStalemate() || insufficientMaterial();
+}
+
+bool Game::isStalemate() {
+    if (inCheck(whiteTurn))
+        return false;
+
+    return !canMove();
+}
+
+bool Game::insufficientMaterial() {
+    Piece piece;
+    int pieceCount[12];
+    for (int i = 0; i < 12; i++) {
+        pieceCount[i] = 0;
+    }
+
+    bool whiteLightBishop = false;
+    bool whiteDarkBishop = false;
+    bool blackLightBishop = false;
+    bool blackDarkBishop = false;
+    bool lightSquare;
+    for (int r = 0; r < 8; r++) {
+        for (int c = 0; c < 8; c++) {
+            piece = position[r][c];
+            if (piece == None)
+                continue;
+            pieceCount[piece]++;
+
+            lightSquare = (r + c) % 2 == 0;
+            if (piece == WhiteBishop) {
+                if (lightSquare)
+                    whiteLightBishop = true;
+                else
+                    whiteDarkBishop = true;
+            } else if (piece == BlackBishop) {
+                if (lightSquare)
+                    blackLightBishop = true;
+                else
+                    blackDarkBishop = true;
+            }
+        }
+    }
+
+    int kingVsKing[12] = {0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 1};
+    int kingVsWhiteKnight[12] = {0, 1, 0, 0, 0, 1, 0, 0, 0, 0, 0, 1};
+    int kingVsWhiteBishop[12] = {0, 0, 1, 0, 0, 1, 0, 0, 0, 0, 0, 1};
+    int kingVsBlackKnight[12] = {0, 0, 0, 0, 0, 1, 0, 1, 0, 0, 0, 1};
+    int kingVsBlackBishop[12] = {0, 0, 0, 0, 0, 1, 0, 0, 1, 0, 0, 1};
+    int bishopsOnlyIndex[8] = {0, 1, 3, 4, 6, 7, 9, 10};
+//    int bishopVsBishop[12] = {0, 0, 1, 0, 0, 1, 0, 0, 1, 0, 0, 1};
+
+    if (equalArrays(pieceCount, kingVsKing))
+        return true;
+    if (equalArrays(pieceCount, kingVsWhiteKnight))
+        return true;
+    if (equalArrays(pieceCount, kingVsWhiteBishop))
+        return true;
+    if (equalArrays(pieceCount, kingVsBlackKnight))
+        return true;
+    if (equalArrays(pieceCount, kingVsBlackBishop))
+        return true;
+
+    int ind;
+    for (int i = 0; i < 8; i++) {
+        ind = bishopsOnlyIndex[i];
+        if (pieceCount[ind] != 0)
+            return false;
+    }
+
+    // Only remaining pieces are kings and bishops
+
+    if ((!whiteLightBishop) && (!blackLightBishop))
+        return true;
+    if ((!whiteDarkBishop) && (!blackDarkBishop))
+        return true;
+
+    return false;
+}
+
+bool Game::equalArrays(int a[12], int b[12]) {
+    for (int i = 0; i < 12; i++) {
+        if (a[i] != b[i])
+            return false;
+    }
+    return true;
+}
+
+bool Game::canMove() {
     Piece piece;
     int from[2];
     int to[2];
@@ -502,14 +602,14 @@ bool Game::isCheckMate() {
                     to[1] = c_to;
                     if (validMove(from, to)) {
                         if (!inCheck(whiteTurn, from, to))
-                            return false;
+                            return true;
                     }
                 }
             }
         }
     }
 
-    return true;
+    return false;
 }
 
 void Game::updateCastle(int from[2], int to[2]) {
