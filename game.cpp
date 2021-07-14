@@ -450,7 +450,6 @@ bool Game::inCheck(bool white) {
             from[0] = r;
             from[1] = c;
             if (validMove(from, kingPos)) {
-//                cout << "Check: (" << r << ", " << c << ") to (" << kingPos[0] << ", " << kingPos[1] << ")\n";
                 return true;
             }
         }
@@ -495,8 +494,6 @@ bool Game::isCheckMate() {
             if (!whiteTurn && (piece < 6))
                 continue;
 
-            cout << "Point 1\n";
-
             from[0] = r_from;
             from[1] = c_from;
             for (int r_to = 0; r_to < 8; r_to++) {
@@ -504,7 +501,6 @@ bool Game::isCheckMate() {
                 for (int c_to = 0; c_to < 8; c_to++) {
                     to[1] = c_to;
                     if (validMove(from, to)) {
-                        cout << "Valid Move\n";
                         if (!inCheck(whiteTurn, from, to))
                             return false;
                     }
