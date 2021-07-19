@@ -4,6 +4,10 @@ using namespace std;
 
 Game::Game()
 {
+    resetGame();
+}
+
+void Game::resetGame() {
     whiteTurn = true;
     whiteKingsideCastle = true;
     whiteQueensideCastle = true;
@@ -11,7 +15,12 @@ Game::Game()
     blackQueensideCastle = true;
     whitePassantPawn = -1;
     blackPassantPawn = -1;
+    movesNoProgess = 0;
+
     setStartingPosition();
+    gameHistory.clear();
+    repeatPositions.clear();
+    gameHistory.push_back(savePosition());
 }
 
 void Game::setStartingPosition() {
@@ -55,6 +64,85 @@ Piece * Game::getPosition() {
     return ptr;
 }
 
+Position Game::savePosition() {
+    Position current;
+    for (int r = 0; r < 8; r++) {
+        for (int c = 0; c < 8; c++) {
+            current.board[r][c] = position[r][c];
+        }
+    }
+
+    current.whiteTurn = whiteTurn;
+
+    int from[2], to[2];
+    if (whiteTurn) {
+        from[0] = 7;
+        from[1] = 4;
+        if (position[from[0]][from[1]] != WhiteKing) {
+            current.kingsideCastle = false;
+            current.queensideCastle = false;
+        } else {
+            to[0] = 7;
+            to[1] = 6;
+            current.kingsideCastle = validMove(from, to);
+
+            to[0] = 7;
+            to[1] = 2;
+            current.queensideCastle = validMove(from, to);
+        }
+    } else {
+        from[0] = 0;
+        from[1] = 4;
+        if (position[from[0]][from[1]] != WhiteKing) {
+            current.kingsideCastle = false;
+            current.queensideCastle = false;
+        } else {
+            to[0] = 0;
+            to[1] = 6;
+            current.kingsideCastle = validMove(from, to);
+
+            to[0] = 0;
+            to[1] = 2;
+            current.queensideCastle = validMove(from, to);
+        }
+    }
+
+    int col;
+    int row;
+    Piece pawn;
+    if (whiteTurn) {
+        col = blackPassantPawn;
+        row = 3;
+        pawn = WhitePawn;
+    } else {
+        col = whitePassantPawn;
+        row = 4;
+        pawn = BlackPawn;
+    }
+
+    if (col == -1)
+        current.enPassantCol = col;
+    else if (col == 0) {
+        if (position[row][1] == pawn)
+            current.enPassantCol = col;
+        else
+            current.enPassantCol = -1;
+    }
+    else if (col == 7) {
+        if (position[row][6] == pawn)
+            current.enPassantCol = col;
+        else
+            current.enPassantCol = -1;
+    } else {
+        if (position[row][col - 1] == pawn || position[row][col + 1] == pawn)
+            current.enPassantCol = col;
+        else
+            current.enPassantCol = -1;
+    }
+
+    return current;
+}
+
 bool Game::isSelectable(int row, int col) {
     if (whiteTurn) {
         if (position[row][col] >= 0 && position[row][col] <= 5)
@@ -76,21 +164,21 @@ void Game::tryMove(int from[2], int to[2]) {
         return;
 
     Piece fromPiece = position[from[0]][from[1]];
+    Piece toPiece = position[to[0]][to[1]];
     makeMove(from, to);
     updateCastle(from, to);
     updatePassant(from, to, fromPiece);
+    updateFiftyMoves(fromPiece, toPiece);
     whiteTurn = !whiteTurn;
 
     if (isCheckMate()) {
-        setStartingPosition();
-        whiteTurn = true;
+        resetGame();
         cout << "Win!\n";
 //        return;
     }
 
     if (isDraw()) {
-        setStartingPosition();
-        whiteTurn = true;
+        resetGame();
         cout << "Draw!\n";
     }
 
@@ -494,7 +582,7 @@ bool Game::isCheckMate() {
 }
 
 bool Game::isDraw() {
-    return isStalemate() || insufficientMaterial();
+    return isStalemate() || insufficientMaterial() || fiftyMoves() || isRepeat();
 }
 
 bool Game::isStalemate() {
@@ -571,6 +659,36 @@ bool Game::insufficientMaterial() {
     if ((!whiteDarkBishop) && (!blackDarkBishop))
         return true;
 
+    return false;
+}
+
+
+bool Game::fiftyMoves() {
+    if (movesNoProgess == 100)
+        return true;
+    return false;
+}
+
+bool Game::isRepeat() {
+    Position currentPos = savePosition();
+
+    int repLen = (int) repeatPositions.size();
+    int gameLen = (int) gameHistory.size();
+
+    for (int i = 0; i < repLen; i++) {
+        if (currentPos == repeatPositions[i]) {
+            return true;
+        }
+    }
+
+    for (int i = 1; i < gameLen; i++) {
+        if (currentPos == gameHistory[i]) {
+            repeatPositions.push_back(currentPos);
+            break;
+        }
+    }
+
+    gameHistory.push_back(currentPos);
     return false;
 }
 
@@ -654,7 +772,18 @@ void Game::updatePassant(int from[2], int to[2], Piece fromPiece) {
     blackPassantPawn = -1;
 }
 
+void Game::updateFiftyMoves(Piece fromPiece, Piece toPiece) {
+    if (fromPiece == WhitePawn || fromPiece == BlackPawn) {
+        movesNoProgess = 0;
+        return;
+    }
+    if (toPiece != None) {
+        movesNoProgess = 0;
+        return;
+    }
 
+    movesNoProgess++;
+}
 
 
 

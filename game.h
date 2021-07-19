@@ -3,7 +3,9 @@
 
 #include <array>
 #include <iostream>
+#include <vector>
 #include "piece.h"
+#include "position.h"
 
 class Game
 {
@@ -15,6 +17,8 @@ public:
 
 private:
     Piece position[8][8];
+    std::vector<Position> gameHistory;
+    std::vector<Position> repeatPositions;
     bool whiteTurn;
     bool whiteKingsideCastle;
     bool whiteQueensideCastle;
@@ -22,7 +26,10 @@ private:
     bool blackQueensideCastle;
     int whitePassantPawn;
     int blackPassantPawn;
+    int movesNoProgess;
+    void resetGame();
     void setStartingPosition();
+    Position savePosition();
     void makeMove(int from[2], int to[2]);
     void makeStandardMove(int from[2], int to[2]);
     bool makeCastleMove(int from[2], int to[2]);
@@ -45,10 +52,13 @@ private:
     bool isDraw();
     bool isStalemate();
     bool insufficientMaterial();
+    bool fiftyMoves();
+    bool isRepeat();
     bool equalArrays(int a[12], int b[12]);
     bool canMove();
     void updateCastle(int from[2], int to[2]);
     void updatePassant(int from[2], int to[2], Piece fromPiece);
+    void updateFiftyMoves(Piece fromPiece, Piece toPiece);
 
 };
 

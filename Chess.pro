@@ -18,6 +18,7 @@ HEADERS += \
     chess.h \
     game.h \
     piece.h \
+    position.h \
     square.h
 
 FORMS += \
