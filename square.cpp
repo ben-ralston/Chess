@@ -53,11 +53,14 @@ void Square::paintEvent(QPaintEvent *event)
     }
 
     float scale = .85;
-    int offset = (int) round((1 - scale) * 64 / 2);
-    int dim = 64 - 2 * offset;
+    int h = this->height();
+    int offset = (int) round((1 - scale) * h / 2);
+    int dim = h - 2 * offset;
+//    cout << dim << ' ' << this->width() << '\n';
     QRect target = QRect(offset, offset, dim, dim);
     int ind = (int) piece;
-    painter.drawImage(target, images[ind], QRect(0, 0, 60, 60));
+//    painter.drawImage(target, images[ind], QRect(0, 0, 504, 504));
+    painter.drawImage(target, images[ind]);
 //    cout << "Drew " << row << ", " << col << '\n';
 //    cout << x() << "  " << y() << "  " << width() << "  " << height() << '\n';
 }
