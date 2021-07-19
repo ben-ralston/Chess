@@ -46,8 +46,9 @@ void Chess::mousePress(int r, int c) {
     } else if (selectable) {
         setSelected(r, c);
     } else if (selected[0] != -1) {
+        int from[2] = {selected[0], selected[1]};
         int to[2] = {r, c};
-        game.tryMove(selected, to);
+        game.tryMove(from, to);
         clearSelected();
         updatePosition();
     }

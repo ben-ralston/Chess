@@ -17,6 +17,7 @@ public:
 
 private:
     Piece position[8][8];
+    Piece flippedPosition[8][8];
     std::vector<Position> gameHistory;
     std::vector<Position> repeatPositions;
     bool whiteTurn;

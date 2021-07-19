@@ -60,7 +60,18 @@ void Game::setStartingPosition() {
 }
 
 Piece * Game::getPosition() {
-    Piece * ptr = &position[0][0];
+    Piece * ptr;
+    if (!whiteTurn) {
+        for (int r = 0; r < 8; r++) {
+            for (int c = 0; c < 8; c++) {
+                flippedPosition[r][c] = position[7 - r][7 - c];
+            }
+        }
+
+        ptr = &flippedPosition[0][0];
+    } else
+        ptr = &position[0][0];
+
     return ptr;
 }
 
@@ -150,7 +161,7 @@ bool Game::isSelectable(int row, int col) {
         else
             return false;
     } else {
-        if (position[row][col] >= 6)
+        if (position[7 - row][7 - col] >= 6)
             return true;
         else
             return false;
@@ -158,6 +169,13 @@ bool Game::isSelectable(int row, int col) {
 }
 
 void Game::tryMove(int from[2], int to[2]) {
+    if (!whiteTurn) {
+        from[0] = 7 - from[0];
+        from[1] = 7 - from[1];
+        to[0] = 7 - to[0];
+        to[1] = 7 - to[1];
+    }
+
     if (!validMove(from, to))
         return;
     if (inCheck(whiteTurn, from, to))

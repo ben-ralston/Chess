@@ -58,6 +58,7 @@ void Square::paintEvent(QPaintEvent *event)
     QRect target = QRect(offset, offset, dim, dim);
     int ind = (int) piece;
     painter.drawImage(target, images[ind], QRect(0, 0, 60, 60));
+//    cout << "Drew " << row << ", " << col << '\n';
 //    cout << x() << "  " << y() << "  " << width() << "  " << height() << '\n';
 }
 
