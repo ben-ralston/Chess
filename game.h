@@ -14,6 +14,7 @@ public:
     Piece * getPosition();
     bool isSelectable(int row, int col);
     void tryMove(int from[2], int to[2]);
+    void resetGame();
 
 private:
     Piece position[8][8];
@@ -28,7 +29,6 @@ private:
     int whitePassantPawn;
     int blackPassantPawn;
     int movesNoProgess;
-    void resetGame();
     void setStartingPosition();
     Position savePosition();
     void makeMove(int from[2], int to[2]);

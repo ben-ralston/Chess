@@ -16,6 +16,7 @@ Chess::Chess(QWidget *parent) : QMainWindow(parent)
     selected[0] = -1;
     selected[1] = -1;
 
+    QPushButton *newGame = this->findChild<QPushButton *>("newGame");
     QWidget *board = this->findChild<QWidget *>("board");
     Square *square;
 
@@ -29,6 +30,8 @@ Chess::Chess(QWidget *parent) : QMainWindow(parent)
     }
 
     updatePosition();
+
+    connect(newGame, &QPushButton::released, this, &Chess::newGame);
 }
 
 Chess::~Chess()
@@ -75,4 +78,10 @@ void Chess::setSelected(int r, int c) {
     selected[0] = r;
     selected[1] = c;
     emit highlight(r, c);
+}
+
+void Chess::newGame() {
+    clearSelected();
+    game.resetGame();
+    updatePosition();
 }

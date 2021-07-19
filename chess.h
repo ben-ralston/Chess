@@ -3,6 +3,7 @@
 
 #include <QMainWindow>
 #include <QWidget>
+#include <QPushButton>
 #include "piece.h"
 #include "game.h"
 
@@ -20,6 +21,7 @@ public:
 
 public slots:
     void mousePress(int r, int c);
+    void newGame();
 
 signals:
     void setPiece(int r, int c, Piece p);
