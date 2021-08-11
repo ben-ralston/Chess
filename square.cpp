@@ -16,13 +16,15 @@ Square::Square(QWidget *parent, int rowNum, int colNum, Piece startPiece) : QWid
     piece = startPiece;
     highlight = false;
 
-    setGeometry(QRect(64 * col, 64 * row, 64, 64));
-    QSizePolicy sizePolicy(QSizePolicy::MinimumExpanding, QSizePolicy::MinimumExpanding);
-    sizePolicy.setHorizontalStretch(0);
-    sizePolicy.setVerticalStretch(0);
-    sizePolicy.setHeightForWidth(this->sizePolicy().hasHeightForWidth());
-    setSizePolicy(sizePolicy);
-    setMinimumSize(QSize(64, 64));
+    int length = floor(parent->width() / 8);
+
+    setGeometry(QRect(length * col, length * row, length, length));
+//    QSizePolicy sizePolicy(QSizePolicy::MinimumExpanding, QSizePolicy::MinimumExpanding);
+//    sizePolicy.setHorizontalStretch(0);
+//    sizePolicy.setVerticalStretch(0);
+//    sizePolicy.setHeightForWidth(this->sizePolicy().hasHeightForWidth());
+//    setSizePolicy(sizePolicy);
+//    setMinimumSize(QSize(64, 64));
 
     loadImages();
 

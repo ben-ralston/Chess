@@ -11,32 +11,42 @@ Chess::Chess(QWidget *parent) : QMainWindow(parent)
 {
     ui->setupUi(this);
 
-    grabKeyboard();
-
-    game = Game();
-
-    selected[0] = -1;
-    selected[1] = -1;
-
     QPushButton *newGame = this->findChild<QPushButton *>("newGame");
+    delete newGame;
     QWidget *board = this->findChild<QWidget *>("board");
-    Square *square;
+    delete board;
 
-    for (int row = 0; row < 8; row++) {
-        for (int col = 0; col < 8; col++) {
-            square = new Square(board, row, col);
-            connect(square, &Square::clicked, this, &Chess::mousePress);
-            connect(this, &Chess::setPiece, square, &Square::setPiece);
-            connect(this, &Chess::highlight, square, &Square::setHighlight);
-        }
-    }
+    QWidget *centralW = this->findChild<QWidget *>("centralwidget");
 
-    moveNum = 0;
-    trueMoveNum = 0;
-    whiteTurn = true;
-    updatePosition();
+    layout = new ChessLayout(centralW, QMargins(0, 0, 0, 0), 0);
+//    layout->show()
 
-    connect(newGame, &QPushButton::released, this, &Chess::newGame);
+//    grabKeyboard();
+
+//    game = Game();
+
+//    selected[0] = -1;
+//    selected[1] = -1;
+
+//    QPushButton *newGame = this->findChild<QPushButton *>("newGame");
+//    QWidget *board = this->findChild<QWidget *>("board");
+//    Square *square;
+
+//    for (int row = 0; row < 8; row++) {
+//        for (int col = 0; col < 8; col++) {
+//            square = new Square(board, row, col);
+//            connect(square, &Square::clicked, this, &Chess::mousePress);
+//            connect(this, &Chess::setPiece, square, &Square::setPiece);
+//            connect(this, &Chess::highlight, square, &Square::setHighlight);
+//        }
+//    }
+
+//    moveNum = 0;
+//    trueMoveNum = 0;
+//    whiteTurn = true;
+//    updatePosition();
+
+//    connect(newGame, &QPushButton::released, this, &Chess::newGame);
 }
 
 Chess::~Chess()

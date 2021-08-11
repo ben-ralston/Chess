@@ -7,6 +7,7 @@
 #include <QKeyEvent>
 #include "piece.h"
 #include "game.h"
+#include "chesslayout.h"
 
 QT_BEGIN_NAMESPACE
 namespace Ui { class Chess; }
@@ -42,5 +43,7 @@ private:
     void updatePosition();
     void clearSelected();
     void setSelected(int r, int c);
+
+    ChessLayout *layout;
 };
 #endif // CHESS_H
