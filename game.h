@@ -11,9 +11,9 @@ class Game
 {
 public:
     Game();
-    Piece * getPosition();
+    Position getPosition(int moveNum = -1);
     bool isSelectable(int row, int col);
-    void tryMove(int from[2], int to[2]);
+    int tryMove(int from[2], int to[2]);
     void resetGame();
 
 private:

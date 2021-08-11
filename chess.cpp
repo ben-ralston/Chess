@@ -11,6 +11,8 @@ Chess::Chess(QWidget *parent) : QMainWindow(parent)
 {
     ui->setupUi(this);
 
+    grabKeyboard();
+
     game = Game();
 
     selected[0] = -1;
@@ -29,6 +31,9 @@ Chess::Chess(QWidget *parent) : QMainWindow(parent)
         }
     }
 
+    moveNum = 0;
+    trueMoveNum = 0;
+    whiteTurn = true;
     updatePosition();
 
     connect(newGame, &QPushButton::released, this, &Chess::newGame);
@@ -40,6 +45,9 @@ Chess::~Chess()
 }
 
 void Chess::mousePress(int r, int c) {
+    if (moveNum != trueMoveNum)
+        return;
+
     bool selectable = game.isSelectable(r, c);
 
     if (selected[0] == -1 && selectable) {
@@ -51,20 +59,39 @@ void Chess::mousePress(int r, int c) {
     } else if (selected[0] != -1) {
         int from[2] = {selected[0], selected[1]};
         int to[2] = {r, c};
-        game.tryMove(from, to);
+        int outcome = game.tryMove(from, to);
+        if (outcome == 1) {
+            moveNum++;
+            trueMoveNum++;
+            whiteTurn = !whiteTurn;
+        } else if (outcome == 2) {
+            newGame();
+            return;
+        }
+
         clearSelected();
         updatePosition();
     }
 }
 
 void Chess::updatePosition() {
-    Piece * ptr = game.getPosition();
-    for (int r = 0; r < 8; r++) {
-        for (int c = 0; c < 8; c++) {
-            emit setPiece(r, c, ptr[8 * r + c]);
+    Position pos = game.getPosition(moveNum);
+
+    if (whiteTurn) {
+        for (int r = 0; r < 8; r++) {
+            for (int c = 0; c < 8; c++) {
+//                cout << pos.board[r][c] << '\n';
+                emit setPiece(r, c, pos.board[r][c]);
+            }
+        }
+    } else {
+        for (int r = 0; r < 8; r++) {
+            for (int c = 0; c < 8; c++) {
+                emit setPiece(r, c, pos.board[7 - r][7 - c]);
+            }
         }
     }
- }
+}
 
 void Chess::clearSelected() {
     if (selected[0] == -1) return;
@@ -81,7 +108,38 @@ void Chess::setSelected(int r, int c) {
 }
 
 void Chess::newGame() {
+    moveNum = 0;
+    trueMoveNum = 0;
+    whiteTurn = true;
     clearSelected();
+
     game.resetGame();
     updatePosition();
+}
+
+void Chess::keyPressEvent(QKeyEvent *event) {
+    // Only clear selected if key press does something
+
+    if (event->key() == Qt::Key_Left)
+    {
+        if (moveNum == 0)
+            return;
+        moveNum--;
+        clearSelected();
+        updatePosition();
+    } else if (event->key() == Qt::Key_Right) {
+        if (moveNum == trueMoveNum)
+            return;
+        moveNum++;
+        clearSelected();
+        updatePosition();
+    } else if (event->key() == Qt::Key_Up) {
+        moveNum = trueMoveNum;
+        clearSelected();
+        updatePosition();
+    } else if (event->key() == Qt::Key_Down) {
+        moveNum = 0;
+        clearSelected();
+        updatePosition();
+    }
 }

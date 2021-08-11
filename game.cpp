@@ -59,20 +59,11 @@ void Game::setStartingPosition() {
     }
 }
 
-Piece * Game::getPosition() {
-    Piece * ptr;
-    if (!whiteTurn) {
-        for (int r = 0; r < 8; r++) {
-            for (int c = 0; c < 8; c++) {
-                flippedPosition[r][c] = position[7 - r][7 - c];
-            }
-        }
+Position Game::getPosition(int moveNum) {
+    if (moveNum == -1)
+        return gameHistory[(int) gameHistory.size() - 1];
 
-        ptr = &flippedPosition[0][0];
-    } else
-        ptr = &position[0][0];
-
-    return ptr;
+    return gameHistory[moveNum];
 }
 
 Position Game::savePosition() {
@@ -168,7 +159,7 @@ bool Game::isSelectable(int row, int col) {
     }
 }
 
-void Game::tryMove(int from[2], int to[2]) {
+int Game::tryMove(int from[2], int to[2]) {
     if (!whiteTurn) {
         from[0] = 7 - from[0];
         from[1] = 7 - from[1];
@@ -177,9 +168,9 @@ void Game::tryMove(int from[2], int to[2]) {
     }
 
     if (!validMove(from, to))
-        return;
+        return 0;
     if (inCheck(whiteTurn, from, to))
-        return;
+        return 0;
 
     Piece fromPiece = position[from[0]][from[1]];
     Piece toPiece = position[to[0]][to[1]];
@@ -192,14 +183,16 @@ void Game::tryMove(int from[2], int to[2]) {
     if (isCheckMate()) {
         resetGame();
         cout << "Win!\n";
-//        return;
+        return 2;
     }
 
     if (isDraw()) {
         resetGame();
         cout << "Draw!\n";
+        return 2;
     }
 
+    return 1;
 }
 
 void Game::makeMove(int from[2], int to[2]) {
