@@ -11,6 +11,8 @@ Chess::Chess(QWidget *parent) : QMainWindow(parent)
 {
     ui->setupUi(this);
     QWidget *centralW = this->findChild<QWidget *>("centralwidget");
+    QVBoxLayout *leftLayout = this->findChild<QVBoxLayout *>("leftLayout");
+    QPushButton *newGame = this->findChild<QPushButton *>("newGame");
 
     grabKeyboard();
 
@@ -19,8 +21,8 @@ Chess::Chess(QWidget *parent) : QMainWindow(parent)
     selected[0] = -1;
     selected[1] = -1;
 
-    QPushButton *newGame = this->findChild<QPushButton *>("newGame");
-    delete newGame;
+//    QPushButton *newGame = this->findChild<QPushButton *>("newGame");
+//    delete newGame;
 
     Square *square;
 
@@ -42,7 +44,9 @@ Chess::Chess(QWidget *parent) : QMainWindow(parent)
     whiteTurn = true;
     updatePosition();
 
-//    connect(newGame, &QPushButton::released, this, &Chess::newGame);
+    layout->add(leftLayout, ChessLayout::West);
+
+    connect(newGame, &QPushButton::released, this, &Chess::newGame);
 }
 
 Chess::~Chess()
