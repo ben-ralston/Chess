@@ -15,7 +15,7 @@
   </property>
   <widget class="QWidget" name="centralwidget">
    <property name="styleSheet">
-    <string notr="true">background-color: rgb(100, 102, 102);</string>
+    <string notr="true">background-color: rgb(255, 255, 255);</string>
    </property>
    <widget class="QWidget" name="board" native="true">
     <property name="geometry">

@@ -37,5 +37,4 @@ private:
     QLayoutItem *squares[64];
 };
 
-
 #endif // CHESSLAYOUT_H

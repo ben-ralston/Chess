@@ -26,7 +26,7 @@ Chess::Chess(QWidget *parent) : QMainWindow(parent)
 
     Square *square;
 
-    layout = new ChessLayout(centralW, QMargins(0, 0, 0, 0), 0);
+    layout = new ChessLayout(centralW, QMargins(5, 5, 5, 5), 5);
 
     for (int row = 0; row < 8; row++) {
         for (int col = 0; col < 8; col++) {
