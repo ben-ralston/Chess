@@ -5,6 +5,7 @@
 #include <QWidget>
 #include <QRect>
 #include <math.h>
+#include "square.h"
 
 class ChessLayout : public QLayout
 {
@@ -17,6 +18,7 @@ public:
 
     void addItem(QLayoutItem *item) override;
     void addWidget(QWidget *widget, Region position);
+    void addSquare(Square *square, int row, int col);
     Qt::Orientations expandingDirections() const override;
     bool hasHeightForWidth() const override;
     int count() const override;
@@ -43,6 +45,7 @@ private:
     enum SizeType { MinimumSize, SizeHint };
     QSize calculateSize(SizeType sizeType) const;
     QLayoutItem *north, *south, *west, *east, *board;
+    QLayoutItem *squares[64];
 
     QList<ItemWrapper *> list;
 };

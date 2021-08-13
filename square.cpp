@@ -16,10 +16,10 @@ Square::Square(QWidget *parent, int rowNum, int colNum, Piece startPiece) : QWid
     piece = startPiece;
     highlight = false;
 
-    int length = floor(parent->width() / 8);
+//    int length = floor(parent->width() / 8);
 //    int length = 64;
 
-    setGeometry(QRect(length * col, length * row, length, length));
+//    setGeometry(QRect(length * col, length * row, length, length));
 //    QSizePolicy sizePolicy(QSizePolicy::MinimumExpanding, QSizePolicy::MinimumExpanding);
 //    sizePolicy.setHorizontalStretch(0);
 //    sizePolicy.setVerticalStretch(0);
@@ -28,7 +28,6 @@ Square::Square(QWidget *parent, int rowNum, int colNum, Piece startPiece) : QWid
 //    setMinimumSize(QSize(64, 64));
 
     loadImages();
-
 }
 
 
@@ -52,7 +51,7 @@ void Square::paintEvent(QPaintEvent *event)
     } else color = base_color;
     painter.fillRect(this->rect(), color);
 
-    return;
+//    return;
 
     if (piece == -1) {
         return;

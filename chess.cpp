@@ -22,14 +22,18 @@ Chess::Chess(QWidget *parent) : QMainWindow(parent)
     QPushButton *newGame = this->findChild<QPushButton *>("newGame");
     delete newGame;
     QWidget *board = this->findChild<QWidget *>("board");
+    delete board;
+
     Square *square;
+
+    layout = new ChessLayout(centralW, QMargins(0, 0, 0, 0), 0);
 
 //    boardLayout = new BoardLayout(board);
 
     for (int row = 0; row < 8; row++) {
         for (int col = 0; col < 8; col++) {
-            square = new Square(board, row, col);
-//            boardLayout->addSquare(square, row, col);
+            square = new Square(centralW, row, col);
+            layout->addSquare(square, row, col);
 
             connect(square, &Square::clicked, this, &Chess::mousePress);
             connect(this, &Chess::setPiece, square, &Square::setPiece);
@@ -44,7 +48,7 @@ Chess::Chess(QWidget *parent) : QMainWindow(parent)
 
 //    connect(newGame, &QPushButton::released, this, &Chess::newGame);
 
-    layout = new ChessLayout(centralW, QMargins(0, 0, 0, 0), 0);
+
 //    layout->add(boardLayout, ChessLayout::Board);
 }
 

@@ -65,6 +65,10 @@ void ChessLayout::addWidget(QWidget *widget, Region position)
     add(new QWidgetItem(widget), position);
 }
 
+void ChessLayout::addSquare(Square *square, int row, int col) {
+    squares[8 * row + col] = new QWidgetItem(square);
+}
+
 Qt::Orientations ChessLayout::expandingDirections() const
 {
     return Qt::Horizontal | Qt::Vertical;
@@ -77,7 +81,7 @@ bool ChessLayout::hasHeightForWidth() const
 
 int ChessLayout::count() const
 {
-    return list.size();
+    return 69;
 }
 
 QLayoutItem *ChessLayout::itemAt(int index) const
@@ -109,12 +113,14 @@ void ChessLayout::setGeometry(const QRect &rect)
 
     if (heightLimit) {
         centerLength = rect.height() - 2 * topMinHeight;
-        topHeight = topMinHeight;
+        centerLength -= centerLength % 8;
+        topHeight = (int) round((rect.height() - centerLength) / 2);
         sideWidth = (int) round((rect.width() - centerLength) / 2);
     } else {
         centerLength = rect.width() - 2 * sideMinWidth;
-        sideWidth = sideMinWidth;
+        centerLength -= centerLength % 8;
         topHeight = (int) round((rect.height() - centerLength) / 2);
+        sideWidth = (int) round((rect.width() - centerLength) / 2);
     }
 
     QLayout::setGeometry(rect);
@@ -126,7 +132,16 @@ void ChessLayout::setGeometry(const QRect &rect)
     south->setGeometry(QRect(rect.x() + sideWidth, rect.y() + topHeight + centerLength,
                              centerLength, topHeight));
 
-//    board->setGeometry(QRect(rect.x() + sideWidth, rect.y() + topHeight, centerLength, centerLength));
+    int length = (int) centerLength / 8;
+
+    QLayoutItem *cur;
+
+    for (int row = 0; row < 8; row++) {
+        for (int col = 0; col < 8; col++) {
+            cur = squares[8 * row + col];
+            cur->setGeometry(QRect(sideWidth + length * col, topHeight + length * row, length, length));
+        }
+    }
 }
 
 QSize ChessLayout::sizeHint() const
