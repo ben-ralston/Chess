@@ -11,8 +11,18 @@ Chess::Chess(QWidget *parent) : QMainWindow(parent)
 {
     ui->setupUi(this);
     QWidget *centralW = this->findChild<QWidget *>("centralwidget");
-    QVBoxLayout *leftLayout = this->findChild<QVBoxLayout *>("leftLayout");
     QPushButton *newGame = this->findChild<QPushButton *>("newGame");
+    QLabel *topTimerLabel = this->findChild<QLabel *>("topTimerLabel");
+    QLabel *bottomTimerLabel = this->findChild<QLabel *>("bottomTimerLabel");
+
+    QVBoxLayout *leftLayout = new QVBoxLayout();
+    leftLayout->addWidget(newGame, 0, Qt::AlignTop);
+
+    QHBoxLayout *topLayout = new QHBoxLayout();
+    topLayout->addWidget(topTimerLabel, 0, Qt::AlignRight);
+
+    QHBoxLayout *bottomLayout = new QHBoxLayout();
+    bottomLayout->addWidget(bottomTimerLabel, 0, Qt::AlignRight);
 
     grabKeyboard();
 
@@ -45,6 +55,8 @@ Chess::Chess(QWidget *parent) : QMainWindow(parent)
     updatePosition();
 
     layout->add(leftLayout, ChessLayout::West);
+    layout->add(topLayout, ChessLayout::North);
+    layout->add(bottomLayout, ChessLayout::South);
 
     connect(newGame, &QPushButton::released, this, &Chess::newGame);
 }
