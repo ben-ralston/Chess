@@ -21,8 +21,6 @@ Chess::Chess(QWidget *parent) : QMainWindow(parent)
 
     QPushButton *newGame = this->findChild<QPushButton *>("newGame");
     delete newGame;
-    QWidget *board = this->findChild<QWidget *>("board");
-    delete board;
 
     Square *square;
 
@@ -45,9 +43,6 @@ Chess::Chess(QWidget *parent) : QMainWindow(parent)
     updatePosition();
 
 //    connect(newGame, &QPushButton::released, this, &Chess::newGame);
-
-
-//    layout->add(boardLayout, ChessLayout::Board);
 }
 
 Chess::~Chess()

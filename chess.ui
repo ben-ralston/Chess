@@ -17,34 +17,6 @@
    <property name="styleSheet">
     <string notr="true">background-color: rgb(255, 255, 255);</string>
    </property>
-   <widget class="QWidget" name="board" native="true">
-    <property name="geometry">
-     <rect>
-      <x>144</x>
-      <y>20</y>
-      <width>512</width>
-      <height>512</height>
-     </rect>
-    </property>
-    <property name="sizePolicy">
-     <sizepolicy hsizetype="Ignored" vsizetype="Ignored">
-      <horstretch>0</horstretch>
-      <verstretch>0</verstretch>
-     </sizepolicy>
-    </property>
-    <property name="minimumSize">
-     <size>
-      <width>0</width>
-      <height>0</height>
-     </size>
-    </property>
-    <property name="cursor">
-     <cursorShape>OpenHandCursor</cursorShape>
-    </property>
-    <property name="styleSheet">
-     <string notr="true"/>
-    </property>
-   </widget>
    <widget class="QPushButton" name="newGame">
     <property name="geometry">
      <rect>

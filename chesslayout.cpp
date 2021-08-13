@@ -179,15 +179,23 @@ void ChessLayout::add(QLayoutItem *item, Region position)
 {
     switch (position) {
     case North:
+        delete north->widget();
+        delete north;
         north = item;
         break;
     case South:
+        delete south->widget();
+        delete south;
         south = item;
         break;
     case East:
+        delete east->widget();
+        delete east;
         east = item;
         break;
     case West:
+        delete west->widget();
+        delete west;
         west = item;
         break;
     }
