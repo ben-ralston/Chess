@@ -10,15 +10,17 @@
 class ChessLayout : public QLayout
 {
 public:
-    enum Region { West, North, South, East, Board };
+    enum Region { West, North, South, East };
 
     explicit ChessLayout(QWidget *parent, const QMargins &margins = QMargins(), int spacing = -1);
     ChessLayout(int spacing = -1);
     ~ChessLayout();
 
-    void addItem(QLayoutItem *item) override;
     void addWidget(QWidget *widget, Region position);
     void addSquare(Square *square, int row, int col);
+    void add(QLayoutItem *item, Region position);
+
+    void addItem(QLayoutItem *item) override;
     Qt::Orientations expandingDirections() const override;
     bool hasHeightForWidth() const override;
     int count() const override;
@@ -28,26 +30,11 @@ public:
     QSize sizeHint() const override;
     QLayoutItem *takeAt(int index) override;
 
-    void add(QLayoutItem *item, Region position);
-
 private:
-    struct ItemWrapper
-    {
-        ItemWrapper(QLayoutItem *i, Region p) {
-            item = i;
-            position = p;
-        }
-
-        QLayoutItem *item;
-        Region position;
-    };
-
     enum SizeType { MinimumSize, SizeHint };
     QSize calculateSize(SizeType sizeType) const;
-    QLayoutItem *north, *south, *west, *east, *board;
+    QLayoutItem *north, *south, *west, *east;
     QLayoutItem *squares[64];
-
-    QList<ItemWrapper *> list;
 };
 
 

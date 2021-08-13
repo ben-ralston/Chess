@@ -28,8 +28,6 @@ Chess::Chess(QWidget *parent) : QMainWindow(parent)
 
     layout = new ChessLayout(centralW, QMargins(0, 0, 0, 0), 0);
 
-//    boardLayout = new BoardLayout(board);
-
     for (int row = 0; row < 8; row++) {
         for (int col = 0; col < 8; col++) {
             square = new Square(centralW, row, col);

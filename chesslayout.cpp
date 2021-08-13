@@ -6,7 +6,7 @@ ChessLayout::ChessLayout(QWidget *parent, const QMargins &margins, int spacing)
     setContentsMargins(margins);
     setSpacing(spacing);
 
-    QWidget *w, *e, *n, *s, *b;
+    QWidget *w, *e, *n, *s;
 
     w = new QWidget(parent);
     w->setStyleSheet("background-color:red;");
@@ -31,13 +31,6 @@ ChessLayout::ChessLayout(QWidget *parent, const QMargins &margins, int spacing)
     s->show();
 
     south = new QWidgetItem(s);
-
-//    b = new QWidget(parent);
-//    b->setStyleSheet("background-color:yellow;");
-//    b->show();
-
-//    board = new QWidgetItem(b);
-
 }
 
 ChessLayout::ChessLayout(int spacing)
@@ -52,7 +45,10 @@ ChessLayout::~ChessLayout()
     delete south;
     delete west;
     delete east;
-    delete board;
+
+    for (int i = 0; i < 64; i++) {
+        delete squares[i];
+    }
 }
 
 void ChessLayout::addItem(QLayoutItem *item)
@@ -86,8 +82,21 @@ int ChessLayout::count() const
 
 QLayoutItem *ChessLayout::itemAt(int index) const
 {
-    ItemWrapper *wrapper = list.value(index);
-    return wrapper ? wrapper->item : nullptr;
+    switch (index) {
+    case 0:
+        return west;
+    case 1:
+        return north;
+    case 2:
+        return east;
+    case 3:
+        return south;
+    }
+
+    if (index < 0 || index > 67)
+        return nullptr;
+
+    return squares[index - 4];
 }
 
 QSize ChessLayout::minimumSize() const
@@ -151,11 +160,8 @@ QSize ChessLayout::sizeHint() const
 
 QLayoutItem *ChessLayout::takeAt(int index)
 {
-    if (index >= 0 && index < list.size()) {
-        ItemWrapper *layoutStruct = list.takeAt(index);
-        return layoutStruct->item;
-    }
     return nullptr;
+    // TODO implement method
 }
 
 void ChessLayout::add(QLayoutItem *item, Region position)
@@ -173,9 +179,6 @@ void ChessLayout::add(QLayoutItem *item, Region position)
     case West:
         west = item;
         break;
-    case Board:
-        board = item;
-        break;
     }
 }
 
@@ -183,21 +186,23 @@ QSize ChessLayout::calculateSize(SizeType sizeType) const
 {
     QSize totalSize;
 
-    for (int i = 0; i < list.size(); ++i) {
-        ItemWrapper *wrapper = list.at(i);
-        Region position = wrapper->position;
-        QSize itemSize;
+    totalSize.rheight() = 0;
+    totalSize.rwidth() = 0;
 
-        if (sizeType == MinimumSize)
-            itemSize = wrapper->item->minimumSize();
-        else // (sizeType == SizeHint)
-            itemSize = wrapper->item->sizeHint();
+//    QLayoutItem *item;
+//    QSize itemSize;
+//    for (int i = 0; i < count(); ++i) {
+//        item = itemAt(i);
 
-        if (position == North || position == South || position == Board)
-            totalSize.rheight() += itemSize.height();
+//        if (sizeType == MinimumSize)
+//            itemSize = item->minimumSize();
+//        else // (sizeType == SizeHint)
+//            itemSize = item->sizeHint();
 
-        if (position == West || position == East || position == Board)
-            totalSize.rwidth() += itemSize.width();
-    }
+//        totalSize.rheight() += itemSize.height();
+
+//        totalSize.rwidth() += itemSize.width();
+//    }
+
     return totalSize;
 }
