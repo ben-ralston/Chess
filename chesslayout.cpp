@@ -6,25 +6,37 @@ ChessLayout::ChessLayout(QWidget *parent, const QMargins &margins, int spacing)
     setContentsMargins(margins);
     setSpacing(spacing);
 
-    west = new QWidget(parent);
-    west->setStyleSheet("background-color:red;");
-    west->show();
+    QWidget *w, *e, *n, *s, *b;
 
-    east = new QWidget(parent);
-    east->setStyleSheet("background-color:blue;");
-    east->show();
+    w = new QWidget(parent);
+    w->setStyleSheet("background-color:red;");
+    w->show();
 
-    north = new QWidget(parent);
-    north->setStyleSheet("background-color:green;");
-    north->show();
+    west = new QWidgetItem(w);
 
-    south = new QWidget(parent);
-    south->setStyleSheet("background-color:purple;");
-    south->show();
+    e = new QWidget(parent);
+    e->setStyleSheet("background-color:blue;");
+    e->show();
 
-    center = new QWidget(parent);
-    center->setStyleSheet("background-color:yellow;");
-    center->show();
+    east = new QWidgetItem(e);
+
+    n = new QWidget(parent);
+    n->setStyleSheet("background-color:green;");
+    n->show();
+
+    north = new QWidgetItem(n);
+
+    s = new QWidget(parent);
+    s->setStyleSheet("background-color:purple;");
+    s->show();
+
+    south = new QWidgetItem(s);
+
+//    b = new QWidget(parent);
+//    b->setStyleSheet("background-color:yellow;");
+//    b->show();
+
+//    board = new QWidgetItem(b);
 
 }
 
@@ -36,9 +48,11 @@ ChessLayout::ChessLayout(int spacing)
 
 ChessLayout::~ChessLayout()
 {
-    QLayoutItem *l;
-    while ((l = takeAt(0)))
-        delete l;
+    delete north;
+    delete south;
+    delete west;
+    delete east;
+    delete board;
 }
 
 void ChessLayout::addItem(QLayoutItem *item)
@@ -112,7 +126,7 @@ void ChessLayout::setGeometry(const QRect &rect)
     south->setGeometry(QRect(rect.x() + sideWidth, rect.y() + topHeight + centerLength,
                              centerLength, topHeight));
 
-    center->setGeometry(QRect(rect.x() + sideWidth, rect.y() + topHeight, centerLength, centerLength));
+//    board->setGeometry(QRect(rect.x() + sideWidth, rect.y() + topHeight, centerLength, centerLength));
 }
 
 QSize ChessLayout::sizeHint() const
@@ -131,7 +145,23 @@ QLayoutItem *ChessLayout::takeAt(int index)
 
 void ChessLayout::add(QLayoutItem *item, Region position)
 {
-    list.append(new ItemWrapper(item, position));
+    switch (position) {
+    case North:
+        north = item;
+        break;
+    case South:
+        south = item;
+        break;
+    case East:
+        east = item;
+        break;
+    case West:
+        west = item;
+        break;
+    case Board:
+        board = item;
+        break;
+    }
 }
 
 QSize ChessLayout::calculateSize(SizeType sizeType) const

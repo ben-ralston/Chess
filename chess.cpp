@@ -10,43 +10,42 @@ Chess::Chess(QWidget *parent) : QMainWindow(parent)
     , ui(new Ui::Chess)
 {
     ui->setupUi(this);
+    QWidget *centralW = this->findChild<QWidget *>("centralwidget");
+
+    grabKeyboard();
+
+    game = Game();
+
+    selected[0] = -1;
+    selected[1] = -1;
 
     QPushButton *newGame = this->findChild<QPushButton *>("newGame");
     delete newGame;
     QWidget *board = this->findChild<QWidget *>("board");
-    delete board;
+    Square *square;
 
-    QWidget *centralW = this->findChild<QWidget *>("centralwidget");
+//    boardLayout = new BoardLayout(board);
 
-    layout = new ChessLayout(centralW, QMargins(0, 0, 0, 0), 0);
-//    layout->show()
+    for (int row = 0; row < 8; row++) {
+        for (int col = 0; col < 8; col++) {
+            square = new Square(board, row, col);
+//            boardLayout->addSquare(square, row, col);
 
-//    grabKeyboard();
+            connect(square, &Square::clicked, this, &Chess::mousePress);
+            connect(this, &Chess::setPiece, square, &Square::setPiece);
+            connect(this, &Chess::highlight, square, &Square::setHighlight);
+        }
+    }
 
-//    game = Game();
-
-//    selected[0] = -1;
-//    selected[1] = -1;
-
-//    QPushButton *newGame = this->findChild<QPushButton *>("newGame");
-//    QWidget *board = this->findChild<QWidget *>("board");
-//    Square *square;
-
-//    for (int row = 0; row < 8; row++) {
-//        for (int col = 0; col < 8; col++) {
-//            square = new Square(board, row, col);
-//            connect(square, &Square::clicked, this, &Chess::mousePress);
-//            connect(this, &Chess::setPiece, square, &Square::setPiece);
-//            connect(this, &Chess::highlight, square, &Square::setHighlight);
-//        }
-//    }
-
-//    moveNum = 0;
-//    trueMoveNum = 0;
-//    whiteTurn = true;
-//    updatePosition();
+    moveNum = 0;
+    trueMoveNum = 0;
+    whiteTurn = true;
+    updatePosition();
 
 //    connect(newGame, &QPushButton::released, this, &Chess::newGame);
+
+    layout = new ChessLayout(centralW, QMargins(0, 0, 0, 0), 0);
+//    layout->add(boardLayout, ChessLayout::Board);
 }
 
 Chess::~Chess()

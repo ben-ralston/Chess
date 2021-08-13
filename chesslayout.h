@@ -42,7 +42,7 @@ private:
 
     enum SizeType { MinimumSize, SizeHint };
     QSize calculateSize(SizeType sizeType) const;
-    QWidget *north, *south, *west, *east, *center;
+    QLayoutItem *north, *south, *west, *east, *board;
 
     QList<ItemWrapper *> list;
 };

@@ -17,6 +17,7 @@ Square::Square(QWidget *parent, int rowNum, int colNum, Piece startPiece) : QWid
     highlight = false;
 
     int length = floor(parent->width() / 8);
+//    int length = 64;
 
     setGeometry(QRect(length * col, length * row, length, length));
 //    QSizePolicy sizePolicy(QSizePolicy::MinimumExpanding, QSizePolicy::MinimumExpanding);
@@ -43,12 +44,15 @@ void Square::mousePressEvent(QMouseEvent *event)
 
 void Square::paintEvent(QPaintEvent *event)
 {
+//    return;
     QColor color;
     QPainter painter(this);
     if (highlight) {
         color = QColor(192, 204, 60);
     } else color = base_color;
     painter.fillRect(this->rect(), color);
+
+    return;
 
     if (piece == -1) {
         return;

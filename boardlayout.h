@@ -14,8 +14,18 @@ public:
     void setGeometry(const QRect &rect) override;
     void addSquare(Square *square, int row, int col);
 
+    void addItem(QLayoutItem *item) override;
+    Qt::Orientations expandingDirections() const override;
+    bool hasHeightForWidth() const override;
+    int count() const override;
+    QLayoutItem *itemAt(int index) const override;
+    QSize minimumSize() const override;
+    QSize sizeHint() const override;
+    QLayoutItem *takeAt(int index) override;
+
 private:
-    Square *squares[64];
+    QLayoutItem *squares[64];
+    bool initialized;
 };
 
 #endif // BOARDLAYOUT_H
