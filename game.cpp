@@ -123,23 +123,23 @@ Position Game::savePosition() {
     }
 
     if (col == -1)
-        current.enPassantCol = col;
+        current.enPassantColumn = col;
     else if (col == 0) {
         if (position[row][1] == pawn)
-            current.enPassantCol = col;
+            current.enPassantColumn = col;
         else
-            current.enPassantCol = -1;
+            current.enPassantColumn = -1;
     }
     else if (col == 7) {
         if (position[row][6] == pawn)
-            current.enPassantCol = col;
+            current.enPassantColumn = col;
         else
-            current.enPassantCol = -1;
+            current.enPassantColumn = -1;
     } else {
         if (position[row][col - 1] == pawn || position[row][col + 1] == pawn)
-            current.enPassantCol = col;
+            current.enPassantColumn = col;
         else
-            current.enPassantCol = -1;
+            current.enPassantColumn = -1;
     }
 
     return current;

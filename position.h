@@ -3,14 +3,16 @@
 
 #include "piece.h"
 
-struct Position {
+struct Position
+{
     Piece board[8][8];
     bool whiteTurn;
     bool kingsideCastle;
     bool queensideCastle;
-    int enPassantCol;
+    int enPassantColumn;
 
-    bool operator==(Position a) {
+    bool operator==(Position a)
+    {
         if (whiteTurn != a.whiteTurn)
             return false;
 
@@ -21,7 +23,7 @@ struct Position {
             }
         }
 
-        return enPassantCol == a.enPassantCol
+        return enPassantColumn == a.enPassantColumn
                && kingsideCastle == a.kingsideCastle
                && queensideCastle == a.queensideCastle;
     }
