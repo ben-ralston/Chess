@@ -1,5 +1,5 @@
-#ifndef CHESSLAYOUT_H
-#define CHESSLAYOUT_H
+#ifndef CHESS_LAYOUT_H
+#define CHESS_LAYOUT_H
 
 #include <QLayout>
 #include <QWidget>
@@ -37,4 +37,4 @@ private:
     QLayoutItem *squares[64];
 };
 
-#endif // CHESSLAYOUT_H
+#endif // CHESS_LAYOUT_H

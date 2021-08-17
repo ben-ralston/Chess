@@ -1,4 +1,4 @@
-#include "chesslayout.h"
+#include "chess_layout.h"
 
 ChessLayout::ChessLayout(QWidget *parent, const QMargins &margins, int spacing)
     : QLayout(parent)

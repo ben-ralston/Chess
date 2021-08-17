@@ -2,13 +2,12 @@
 #define CHESS_H
 
 #include <QMainWindow>
-#include <QWidget>
-#include <QPushButton>
 #include <QKeyEvent>
 #include <QLabel>
-#include "piece.h"
+
 #include "game.h"
-#include "chesslayout.h"
+#include "chess_layout.h"
+#include "piece.h"
 #include "timer.h"
 
 QT_BEGIN_NAMESPACE
@@ -20,43 +19,44 @@ class Chess : public QMainWindow
     Q_OBJECT
 
 public:
-    Chess(QWidget *parent = nullptr);
+    explicit Chess(QWidget *parent = nullptr);
     ~Chess();
 
 public slots:
-    void mousePress(int r, int c);
     void newGame();
-    void updateText(QString text, bool white);
+    void mousePress(int row, int col);
+    void updateTimerText(QString text, bool white);
     void expiredTime(bool white);
 
 signals:
-    void setPiece(int r, int c, Piece p);
-    void highlight(int r, int c);
+    void setPiece(int row, int col, Piece piece);
+    void highlightSquare(int row, int col);
     void startTimer(bool white);
     void pauseTimer(bool white);
-    void resetTimer(int time, int inc, bool white);
+    void resetTimer(int startingTime, int increment, bool white);
 
 protected:
     void keyPressEvent(QKeyEvent *event);
 
 private:
-    Ui::Chess *ui;
-    Piece curPosition[8][8];
-    Game game;
-    int selected[2];
-    int moveNum;
-    int trueMoveNum;
-    bool whiteTurn;
     void updatePosition();
-    void clearSelected();
-    void setSelected(int r, int c);
+    void setSelectedSquare(int row, int col);
+    void clearSelectedSquare();
     void pressClock();
-    void updateLabels();
+    void updateTimerLabels();
+    int squareIndexAdjustment(int rowOrColIndex, bool whiteTurn) const;
 
-    QLabel *topTimerLabel, *bottomTimerLabel;
-    QString whiteTime, blackTime;
-    Timer *whiteTimer, *blackTimer;
-
-    ChessLayout *layout;
+    Ui::Chess *ui_;
+    Game game_;
+    ChessLayout *layout_;
+    int selected_[2];
+    int shownMoveNumber_, trueMoveNumber_;
+    bool whiteTurn_;
+    Timer *whiteTimer_;
+    Timer *blackTimer_;
+    QLabel *topTimerLabel_;
+    QLabel *bottomTimerLabel_;
+    QString whiteTimerText_, blackTimerText_;
 };
+
 #endif // CHESS_H

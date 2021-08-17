@@ -9,7 +9,7 @@ CONFIG += c++11
 #DEFINES += QT_DISABLE_DEPRECATED_BEFORE=0x060000    # disables all the APIs deprecated before Qt 6.0.0
 
 SOURCES += \
-    chesslayout.cpp \
+    chess_layout.cpp \
     game.cpp \
     main.cpp \
     chess.cpp \
@@ -18,7 +18,7 @@ SOURCES += \
 
 HEADERS += \
     chess.h \
-    chesslayout.h \
+    chess_layout.h \
     game.h \
     piece.h \
     position.h \

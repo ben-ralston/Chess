@@ -1,216 +1,236 @@
-#include <iostream>
-
 #include "chess.h"
+
+#include <QKeyEvent>
+
 #include "ui_chess.h"
+#include "game.h"
+#include "chess_layout.h"
 #include "square.h"
+#include "timer.h"
+#include "position.h"
 
 using namespace std;
 
-Chess::Chess(QWidget *parent) : QMainWindow(parent)
-    , ui(new Ui::Chess)
+Chess::Chess(QWidget *parent) : QMainWindow(parent), ui_(new Ui::Chess)
 {
-    ui->setupUi(this);
-    QWidget *centralW = this->findChild<QWidget *>("centralwidget");
+    ui_->setupUi(this);
+
+    QWidget *centralWidget = this->findChild<QWidget *>("centralwidget");
     QPushButton *newGame = this->findChild<QPushButton *>("newGame");
-    topTimerLabel = this->findChild<QLabel *>("topTimerLabel");
-    bottomTimerLabel = this->findChild<QLabel *>("bottomTimerLabel");
+    topTimerLabel_ = this->findChild<QLabel *>("topTimerLabel");
+    bottomTimerLabel_ = this->findChild<QLabel *>("bottomTimerLabel");
+
+    layout_ = new ChessLayout(centralWidget, QMargins(5, 5, 5, 5), 5);
 
     QVBoxLayout *leftLayout = new QVBoxLayout();
-    leftLayout->addWidget(newGame, 0, Qt::AlignTop);
-
     QHBoxLayout *topLayout = new QHBoxLayout();
-    topLayout->addWidget(topTimerLabel, 0, Qt::AlignLeft);
-
     QHBoxLayout *bottomLayout = new QHBoxLayout();
-    bottomLayout->addWidget(bottomTimerLabel, 0, Qt::AlignRight);
 
-    grabKeyboard();
+    leftLayout->addWidget(newGame, 0, Qt::AlignTop);
+    topLayout->addWidget(topTimerLabel_, 0, Qt::AlignLeft);
+    bottomLayout->addWidget(bottomTimerLabel_, 0, Qt::AlignRight);
 
-    game = Game();
-
-    selected[0] = -1;
-    selected[1] = -1;
-
-    Square *square;
-
-    layout = new ChessLayout(centralW, QMargins(5, 5, 5, 5), 5);
-
-    for (int row = 0; row < 8; row++) {
-        for (int col = 0; col < 8; col++) {
-            square = new Square(centralW, row, col);
-            layout->addSquare(square, row, col);
-
-            connect(square, &Square::clicked, this, &Chess::mousePress);
-            connect(this, &Chess::setPiece, square, &Square::setPiece);
-            connect(this, &Chess::highlight, square, &Square::setHighlight);
-        }
-    }
-
-    moveNum = 0;
-    trueMoveNum = 0;
-    whiteTurn = true;
-    updatePosition();
-
-    layout->add(leftLayout, ChessLayout::West);
-    layout->add(topLayout, ChessLayout::North);
-    layout->add(bottomLayout, ChessLayout::South);
+    layout_->add(leftLayout, ChessLayout::West);
+    layout_->add(topLayout, ChessLayout::North);
+    layout_->add(bottomLayout, ChessLayout::South);
 
     connect(newGame, &QPushButton::released, this, &Chess::newGame);
 
-    whiteTimer = new Timer(this, 30000, 2000, true);
-    blackTimer = new Timer(this, 30000, 5000, false);
+    Square *square;
+
+    for (int row = 0; row < 8; row++) {
+        for (int col = 0; col < 8; col++) {
+            square = new Square(centralWidget, row, col);
+            layout_->addSquare(square, row, col);
+
+            connect(this, &Chess::setPiece, square, &Square::setPiece);
+            connect(this, &Chess::highlightSquare, square, &Square::setHighlight);
+            connect(square, &Square::clicked, this, &Chess::mousePress);
+        }
+    }
+
+    whiteTimer_ = new Timer(this, 30000, 2000, true);
+    blackTimer_ = new Timer(this, 30000, 5000, false);
 //    whiteTimer = new Timer(this, 300000, 0, true);
 //    blackTimer = new Timer(this, 300000, 0, false);
-    connect(this, &Chess::startTimer, whiteTimer, &Timer::start);
-    connect(this, &Chess::pauseTimer, whiteTimer, &Timer::pause);
-    connect(this, &Chess::resetTimer, whiteTimer, &Timer::reset);
-    connect(whiteTimer, &Timer::changeText, this, &Chess::updateText);
-    connect(whiteTimer, &Timer::expiredTime, this, &Chess::expiredTime);
 
-    connect(this, &Chess::startTimer, blackTimer, &Timer::start);
-    connect(this, &Chess::pauseTimer, blackTimer, &Timer::pause);
-    connect(this, &Chess::resetTimer, blackTimer, &Timer::reset);
-    connect(blackTimer, &Timer::changeText, this, &Chess::updateText);
-    connect(blackTimer, &Timer::expiredTime, this, &Chess::expiredTime);
+    connect(this, &Chess::startTimer, whiteTimer_, &Timer::start);
+    connect(this, &Chess::pauseTimer, whiteTimer_, &Timer::pause);
+    connect(this, &Chess::resetTimer, whiteTimer_, &Timer::reset);
+    connect(whiteTimer_, &Timer::changeText, this, &Chess::updateTimerText);
+    connect(whiteTimer_, &Timer::expiredTime, this, &Chess::expiredTime);
 
-    whiteTimer->setText();
-    blackTimer->setText();
+    connect(this, &Chess::startTimer, blackTimer_, &Timer::start);
+    connect(this, &Chess::pauseTimer, blackTimer_, &Timer::pause);
+    connect(this, &Chess::resetTimer, blackTimer_, &Timer::reset);
+    connect(blackTimer_, &Timer::changeText, this, &Chess::updateTimerText);
+    connect(blackTimer_, &Timer::expiredTime, this, &Chess::expiredTime);
+
+    whiteTimer_->setText();
+    blackTimer_->setText();
+
+    grabKeyboard();
+
+    game_ = Game();
+    selected_[0] = -1;
+    selected_[1] = -1;
+    shownMoveNumber_ = 0;
+    trueMoveNumber_ = 0;
+//    whiteTurn_ = true;
+
+    updatePosition();
 }
 
 Chess::~Chess()
 {
-    delete ui;
+    delete ui_;
+    delete layout_;
+    delete whiteTimer_;
+    delete blackTimer_;
+    delete topTimerLabel_;
+    delete bottomTimerLabel_;
 }
 
-void Chess::mousePress(int r, int c) {
-    if (moveNum != trueMoveNum)
-        return;
+void Chess::newGame()
+{
+    game_.resetGame();
+    shownMoveNumber_ = 0;
+    trueMoveNumber_ = 0;
+    whiteTurn_ = true;
+    clearSelectedSquare();
 
-    bool selectable = game.isSelectable(r, c);
-
-    if (selected[0] == -1 && selectable) {
-        setSelected(r, c);
-    } else if (selected[0] == r && selected[1] == c) {
-        clearSelected();
-    } else if (selectable) {
-        setSelected(r, c);
-    } else if (selected[0] != -1) {
-        int from[2] = {selected[0], selected[1]};
-        int to[2] = {r, c};
-        int outcome = game.tryMove(from, to);
-        if (outcome == 1) {
-            moveNum++;
-            trueMoveNum++;
-            whiteTurn = !whiteTurn;
-            pressClock();
-        } else if (outcome == 2) {
-            newGame();
-            return;
-        }
-
-        clearSelected();
-        updatePosition();
-    }
-}
-
-void Chess::updatePosition() {
-    Position pos = game.getPosition(moveNum);
-
-    if (whiteTurn) {
-        for (int r = 0; r < 8; r++) {
-            for (int c = 0; c < 8; c++) {
-//                cout << pos.board[r][c] << '\n';
-                emit setPiece(r, c, pos.board[r][c]);
-            }
-        }
-    } else {
-        for (int r = 0; r < 8; r++) {
-            for (int c = 0; c < 8; c++) {
-                emit setPiece(r, c, pos.board[7 - r][7 - c]);
-            }
-        }
-    }
-}
-
-void Chess::clearSelected() {
-    if (selected[0] == -1) return;
-    emit highlight(selected[0], selected[1]);
-    selected[0] = -1;
-    selected[1] = -1;
-}
-
-void Chess::setSelected(int r, int c) {
-    clearSelected();
-    selected[0] = r;
-    selected[1] = c;
-    emit highlight(r, c);
-}
-
-void Chess::newGame() {
-    moveNum = 0;
-    trueMoveNum = 0;
-    whiteTurn = true;
-    clearSelected();
+    updatePosition();
 
     emit resetTimer(300000, 0, true);
     emit resetTimer(300000, 0, false);
-    game.resetGame();
-    updatePosition();
 }
 
-void Chess::keyPressEvent(QKeyEvent *event) {
-    // Only clear selected if key press does something
+void Chess::mousePress(int row, int col)
+{
+    if (shownMoveNumber_ != trueMoveNumber_)
+        return;
 
-    if (event->key() == Qt::Key_Left)
-    {
-        if (moveNum == 0)
-            return;
-        moveNum--;
-        clearSelected();
-        updatePosition();
-    } else if (event->key() == Qt::Key_Right) {
-        if (moveNum == trueMoveNum)
-            return;
-        moveNum++;
-        clearSelected();
-        updatePosition();
-    } else if (event->key() == Qt::Key_Up) {
-        moveNum = trueMoveNum;
-        clearSelected();
-        updatePosition();
-    } else if (event->key() == Qt::Key_Down) {
-        moveNum = 0;
-        clearSelected();
+    bool selectable = game_.isSelectable(row, col);
+
+    if (selected_[0] == row && selected_[1] == col) {
+        clearSelectedSquare();
+    } else if (selectable) {
+        setSelectedSquare(row, col);
+    } else if (selected_[0] != -1) {
+        int from[2] = {selected_[0], selected_[1]};
+        int to[2] = {row, col};
+
+        // TODO Replace int outcome with enumerated type for different outcomes
+        int outcome = game_.tryMove(from, to);
+
+        if (outcome == 1) {
+            shownMoveNumber_++;
+            trueMoveNumber_++;
+            whiteTurn_ = !whiteTurn_;
+            pressClock();
+        } else if (outcome == 2)
+            newGame();
+
+        clearSelectedSquare();
         updatePosition();
     }
 }
 
-void Chess::updateText(QString text, bool white) {
+void Chess::updateTimerText(QString text, bool white)
+{
     if (white)
-        whiteTime = text;
+        whiteTimerText_ = text;
     else
-        blackTime = text;
+        blackTimerText_ = text;
 
-    updateLabels();
+    updateTimerLabels();
 }
 
-void Chess::expiredTime(bool white) {
+void Chess::expiredTime(bool white)
+{
     newGame();
 }
 
-void Chess::pressClock() {
-    if (trueMoveNum > 1) {
-        emit startTimer(whiteTurn);
-        emit pauseTimer(!whiteTurn);
+void Chess::keyPressEvent(QKeyEvent *event)
+{
+    if (event->key() == Qt::Key_Down) {
+        if (shownMoveNumber_ == 0)
+           return;
+        shownMoveNumber_ = 0;
+    } else if (event->key() == Qt::Key_Left) {
+        if (shownMoveNumber_ == 0)
+            return;
+        shownMoveNumber_--;
+    } else if (event->key() == Qt::Key_Right) {
+        if (shownMoveNumber_ == trueMoveNumber_)
+            return;
+        shownMoveNumber_++;
+    } else if (event->key() == Qt::Key_Up) {
+        if (shownMoveNumber_ == trueMoveNumber_)
+            return;
+        shownMoveNumber_ = trueMoveNumber_;
+    }
+
+    clearSelectedSquare();
+    updatePosition();
+}
+
+void Chess::updatePosition()
+{
+    Position position = game_.getPosition(shownMoveNumber_);
+
+    for (int row = 0; row < 8; row++) {
+        for (int col = 0; col < 8; col++) {
+            emit setPiece(row, col,
+                          position.board[squareIndexAdjustment(row, whiteTurn_)]
+                                        [squareIndexAdjustment(col, whiteTurn_)]);
+        }
     }
 }
 
-void Chess::updateLabels() {
-    if (whiteTurn) {
-        bottomTimerLabel->setText(whiteTime);
-        topTimerLabel->setText(blackTime);
-    } else {
-        bottomTimerLabel->setText(blackTime);
-        topTimerLabel->setText(whiteTime);
+void Chess::setSelectedSquare(int row, int col)
+{
+    clearSelectedSquare();
+    selected_[0] = row;
+    selected_[1] = col;
+    emit highlightSquare(row, col);
+}
+
+void Chess::clearSelectedSquare()
+{
+    if (selected_[0] == -1)
+        return;
+
+    emit highlightSquare(selected_[0], selected_[1]);
+    selected_[0] = -1;
+    selected_[1] = -1;
+}
+
+void Chess::pressClock()
+{
+    if (trueMoveNumber_ == 2)
+        emit startTimer(whiteTurn_);
+    else if (trueMoveNumber_ > 2) {
+        emit startTimer(whiteTurn_);
+        emit pauseTimer(!whiteTurn_);
     }
+}
+
+void Chess::updateTimerLabels()
+{
+    if (whiteTurn_) {
+        bottomTimerLabel_->setText(whiteTimerText_);
+        topTimerLabel_->setText(blackTimerText_);
+    } else {
+        bottomTimerLabel_->setText(blackTimerText_);
+        topTimerLabel_->setText(whiteTimerText_);
+    }
+}
+
+int Chess::squareIndexAdjustment(int rowOrColIndex, bool whiteTurn) const
+{
+    if (whiteTurn)
+        return rowOrColIndex;
+    else
+        return 7 - rowOrColIndex;
 }
