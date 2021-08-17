@@ -76,7 +76,7 @@ Chess::Chess(QWidget *parent) : QMainWindow(parent), ui_(new Ui::Chess)
     selected_[1] = -1;
     shownMoveNumber_ = 0;
     trueMoveNumber_ = 0;
-//    whiteTurn_ = true;
+    whiteTurn_ = true;
 
     updatePosition();
 }

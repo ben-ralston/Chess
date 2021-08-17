@@ -11,7 +11,7 @@ struct Position
     bool queensideCastle;
     int enPassantColumn;
 
-    bool operator==(Position a)
+    bool operator==(const Position& a) const
     {
         if (whiteTurn != a.whiteTurn)
             return false;
