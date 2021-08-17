@@ -107,7 +107,7 @@ QSize ChessLayout::minimumSize() const
 void ChessLayout::setGeometry(const QRect &rect)
 {
     int sideMinWidth = 100;
-    int topMinHeight = 50;
+    int topHeight = 50;
     int centerMinLength = 200;
 
     QMargins margins = contentsMargins();
@@ -116,24 +116,24 @@ void ChessLayout::setGeometry(const QRect &rect)
     int horSpacing = 2 * spacing() + margins.left() + margins.right();
 
     bool heightLimit;
-    if (rect.width() - 2 * sideMinWidth - horSpacing > rect.height() - 2 * topMinHeight - vertSpacing)
+    if (rect.width() - 2 * sideMinWidth - horSpacing > rect.height() - 2 * topHeight - vertSpacing)
         heightLimit = true;
     else
         heightLimit = false;
 
     int centerLength;
     int sideWidth;
-    int topHeight;
+    int vertOffset;
 
     if (heightLimit) {
-        centerLength = rect.height() - 2 * topMinHeight - vertSpacing;
+        centerLength = rect.height() - 2 * topHeight - vertSpacing;
         centerLength -= centerLength % 8;
-        topHeight = (int) round((rect.height() - centerLength - vertSpacing) / 2);
+        vertOffset = (int) round((rect.height() - centerLength - vertSpacing - 2 * topHeight) / 2);
         sideWidth = (int) round((rect.width() - centerLength - horSpacing) / 2);
     } else {
         centerLength = rect.width() - 2 * sideMinWidth - horSpacing;
         centerLength -= centerLength % 8;
-        topHeight = (int) round((rect.height() - centerLength - vertSpacing) / 2);
+        vertOffset = (int) round((rect.height() - centerLength - vertSpacing - 2 * topHeight) / 2);
         sideWidth = (int) round((rect.width() - centerLength - horSpacing) / 2);
     }
 
@@ -147,7 +147,7 @@ void ChessLayout::setGeometry(const QRect &rect)
     north->setGeometry(QRect(rect.x() + margins.left() + sideWidth + spacing(), rect.y() + margins.top(),
                              centerLength, topHeight));
     south->setGeometry(QRect(rect.x() + margins.left() + sideWidth + spacing(),
-                             rect.y() + margins.top() + topHeight + centerLength + 2 * spacing(),
+                             rect.y() + margins.top() + topHeight + centerLength + 2 * spacing() + 2 * vertOffset,
                              centerLength, topHeight));
 
     int length = (int) centerLength / 8;
@@ -158,7 +158,7 @@ void ChessLayout::setGeometry(const QRect &rect)
         for (int col = 0; col < 8; col++) {
             cur = squares[8 * row + col];
             cur->setGeometry(QRect(margins.left() + sideWidth + spacing() + length * col,
-                                   margins.top() + topHeight + spacing() + length * row,
+                                   margins.top() + topHeight + spacing() +vertOffset + length * row,
                                    length, length));
         }
     }

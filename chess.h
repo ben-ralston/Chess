@@ -5,9 +5,11 @@
 #include <QWidget>
 #include <QPushButton>
 #include <QKeyEvent>
+#include <QLabel>
 #include "piece.h"
 #include "game.h"
 #include "chesslayout.h"
+#include "timer.h"
 
 QT_BEGIN_NAMESPACE
 namespace Ui { class Chess; }
@@ -24,10 +26,15 @@ public:
 public slots:
     void mousePress(int r, int c);
     void newGame();
+    void updateText(QString text, bool white);
+    void expiredTime(bool white);
 
 signals:
     void setPiece(int r, int c, Piece p);
     void highlight(int r, int c);
+    void startTimer(bool white);
+    void pauseTimer(bool white);
+    void resetTimer(int time, int inc, bool white);
 
 protected:
     void keyPressEvent(QKeyEvent *event);
@@ -43,6 +50,12 @@ private:
     void updatePosition();
     void clearSelected();
     void setSelected(int r, int c);
+    void pressClock();
+    void updateLabels();
+
+    QLabel *topTimerLabel, *bottomTimerLabel;
+    QString whiteTime, blackTime;
+    Timer *whiteTimer, *blackTimer;
 
     ChessLayout *layout;
 };

@@ -12,14 +12,14 @@ Chess::Chess(QWidget *parent) : QMainWindow(parent)
     ui->setupUi(this);
     QWidget *centralW = this->findChild<QWidget *>("centralwidget");
     QPushButton *newGame = this->findChild<QPushButton *>("newGame");
-    QLabel *topTimerLabel = this->findChild<QLabel *>("topTimerLabel");
-    QLabel *bottomTimerLabel = this->findChild<QLabel *>("bottomTimerLabel");
+    topTimerLabel = this->findChild<QLabel *>("topTimerLabel");
+    bottomTimerLabel = this->findChild<QLabel *>("bottomTimerLabel");
 
     QVBoxLayout *leftLayout = new QVBoxLayout();
     leftLayout->addWidget(newGame, 0, Qt::AlignTop);
 
     QHBoxLayout *topLayout = new QHBoxLayout();
-    topLayout->addWidget(topTimerLabel, 0, Qt::AlignRight);
+    topLayout->addWidget(topTimerLabel, 0, Qt::AlignLeft);
 
     QHBoxLayout *bottomLayout = new QHBoxLayout();
     bottomLayout->addWidget(bottomTimerLabel, 0, Qt::AlignRight);
@@ -30,9 +30,6 @@ Chess::Chess(QWidget *parent) : QMainWindow(parent)
 
     selected[0] = -1;
     selected[1] = -1;
-
-//    QPushButton *newGame = this->findChild<QPushButton *>("newGame");
-//    delete newGame;
 
     Square *square;
 
@@ -59,6 +56,25 @@ Chess::Chess(QWidget *parent) : QMainWindow(parent)
     layout->add(bottomLayout, ChessLayout::South);
 
     connect(newGame, &QPushButton::released, this, &Chess::newGame);
+
+    whiteTimer = new Timer(this, 30000, 2000, true);
+    blackTimer = new Timer(this, 30000, 5000, false);
+//    whiteTimer = new Timer(this, 300000, 0, true);
+//    blackTimer = new Timer(this, 300000, 0, false);
+    connect(this, &Chess::startTimer, whiteTimer, &Timer::start);
+    connect(this, &Chess::pauseTimer, whiteTimer, &Timer::pause);
+    connect(this, &Chess::resetTimer, whiteTimer, &Timer::reset);
+    connect(whiteTimer, &Timer::changeText, this, &Chess::updateText);
+    connect(whiteTimer, &Timer::expiredTime, this, &Chess::expiredTime);
+
+    connect(this, &Chess::startTimer, blackTimer, &Timer::start);
+    connect(this, &Chess::pauseTimer, blackTimer, &Timer::pause);
+    connect(this, &Chess::resetTimer, blackTimer, &Timer::reset);
+    connect(blackTimer, &Timer::changeText, this, &Chess::updateText);
+    connect(blackTimer, &Timer::expiredTime, this, &Chess::expiredTime);
+
+    whiteTimer->setText();
+    blackTimer->setText();
 }
 
 Chess::~Chess()
@@ -86,6 +102,7 @@ void Chess::mousePress(int r, int c) {
             moveNum++;
             trueMoveNum++;
             whiteTurn = !whiteTurn;
+            pressClock();
         } else if (outcome == 2) {
             newGame();
             return;
@@ -135,6 +152,8 @@ void Chess::newGame() {
     whiteTurn = true;
     clearSelected();
 
+    emit resetTimer(300000, 0, true);
+    emit resetTimer(300000, 0, false);
     game.resetGame();
     updatePosition();
 }
@@ -163,5 +182,35 @@ void Chess::keyPressEvent(QKeyEvent *event) {
         moveNum = 0;
         clearSelected();
         updatePosition();
+    }
+}
+
+void Chess::updateText(QString text, bool white) {
+    if (white)
+        whiteTime = text;
+    else
+        blackTime = text;
+
+    updateLabels();
+}
+
+void Chess::expiredTime(bool white) {
+    newGame();
+}
+
+void Chess::pressClock() {
+    if (trueMoveNum > 1) {
+        emit startTimer(whiteTurn);
+        emit pauseTimer(!whiteTurn);
+    }
+}
+
+void Chess::updateLabels() {
+    if (whiteTurn) {
+        bottomTimerLabel->setText(whiteTime);
+        topTimerLabel->setText(blackTime);
+    } else {
+        bottomTimerLabel->setText(blackTime);
+        topTimerLabel->setText(whiteTime);
     }
 }

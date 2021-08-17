@@ -13,7 +13,8 @@ SOURCES += \
     game.cpp \
     main.cpp \
     chess.cpp \
-    square.cpp
+    square.cpp \
+    timer.cpp
 
 HEADERS += \
     chess.h \
@@ -21,7 +22,8 @@ HEADERS += \
     game.h \
     piece.h \
     position.h \
-    square.h
+    square.h \
+    timer.h
 
 FORMS += \
     chess.ui
