@@ -11,7 +11,9 @@
 
 using namespace std;
 
-Chess::Chess(QWidget *parent) : QMainWindow(parent), ui_(new Ui::Chess)
+Chess::Chess(QWidget *parent)
+    : QMainWindow(parent)
+    , ui_(new Ui::Chess)
 {
     ui_->setupUi(this);
 
@@ -37,6 +39,9 @@ Chess::Chess(QWidget *parent) : QMainWindow(parent), ui_(new Ui::Chess)
     connect(newGame, &QPushButton::released, this, &Chess::newGame);
 
     Square *square;
+
+//    Square::loadImages();
+     // define our static initializer, which will call the init_static constructor, which will initialize s_mychars
 
     for (int row = 0; row < 8; row++) {
         for (int col = 0; col < 8; col++) {

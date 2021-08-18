@@ -35,10 +35,8 @@ signals:
     void pauseTimer(bool white);
     void resetTimer(int startingTime, int increment, bool white);
 
-protected:
-    void keyPressEvent(QKeyEvent *event);
-
 private:
+    void keyPressEvent(QKeyEvent *event);
     void updatePosition();
     void setSelectedSquare(int row, int col);
     void clearSelectedSquare();

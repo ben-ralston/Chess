@@ -2,39 +2,38 @@
 #define SQUARE_H
 
 #include <QWidget>
-#include <QPainter>
 
 #include "piece.h"
-
-//QT_BEGIN_NAMESPACE
-//namespace Ui { class Square; }
-//QT_END_NAMESPACE
 
 class Square : public QWidget
 {
     Q_OBJECT
 
 public:
-    explicit Square(QWidget *parent, int rowNum, int colNum, Piece startPiece = None);
+    explicit Square(QWidget *parent, int row, int col);
     ~Square();
-    void paintEvent(QPaintEvent *event);
-    void mousePressEvent(QMouseEvent *event);
 
 public slots:
-    void setPiece(int r, int c, Piece newPiece);
-    void setHighlight(int r, int c);
+    void setPiece(int row, int col, Piece piece);
+    void setHighlight(int row, int col);
 
 signals:
     void clicked(int row, int col);
 
 private:
-    void loadImages();
-    int row;
-    int col;
-    bool highlight;
-    QColor base_color;
-    Piece piece;
-    QImage images[12];
+    static QImage *loadImages();
+    void paintEvent(QPaintEvent *event);
+    void mousePressEvent(QMouseEvent *event);
+
+    static const QImage * const images_;
+    static QColor lightColor_;
+    static QColor darkColor_;
+    static QColor highlightColor_;
+    const int row_;
+    const int col_;
+    const bool lightSquare_;
+    Piece piece_;
+    bool highlighted_;
 };
 
 #endif // SQUARE_H

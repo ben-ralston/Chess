@@ -1,92 +1,89 @@
 #include "square.h"
-#include <iostream>
-#include <math.h>
+
+#include <cmath>
+
+#include <QPainter>
+#include <QPaintEvent>
 
 using namespace std;
 
-Square::Square(QWidget *parent, int rowNum, int colNum, Piece startPiece) : QWidget(parent)
+const QImage * const Square::images_ = Square::loadImages();
+QColor Square::lightColor_(238, 238, 210);
+QColor Square::darkColor_(118, 150, 86);
+QColor Square::highlightColor_(192, 204, 60);
+
+Square::Square(QWidget *parent, int row, int col)
+    : QWidget(parent),
+      row_(row),
+      col_(col),
+      lightSquare_((row + col) % 2 == 0),
+      piece_(None),
+      highlighted_(false)
 {
-    row = rowNum;
-    col = colNum;
-    if ((row + col) % 2 == 0) {
-        base_color = QColor(238, 238, 210);
-    } else {
-        base_color = QColor(118, 150, 86);
-    }
-    piece = startPiece;
-    highlight = false;
 
-//    int length = floor(parent->width() / 8);
-//    int length = 64;
-
-//    setGeometry(QRect(length * col, length * row, length, length));
-//    QSizePolicy sizePolicy(QSizePolicy::MinimumExpanding, QSizePolicy::MinimumExpanding);
-//    sizePolicy.setHorizontalStretch(0);
-//    sizePolicy.setVerticalStretch(0);
-//    sizePolicy.setHeightForWidth(this->sizePolicy().hasHeightForWidth());
-//    setSizePolicy(sizePolicy);
-//    setMinimumSize(QSize(64, 64));
-
-    loadImages();
 }
-
 
 Square::~Square()
 {
-
+    delete [] images_;
 }
 
-void Square::mousePressEvent(QMouseEvent *event)
+QImage *Square::loadImages()
 {
-    emit clicked(row, col);
-}
-
-void Square::paintEvent(QPaintEvent *event)
-{
-//    return;
-    QColor color;
-    QPainter painter(this);
-    if (highlight) {
-        color = QColor(192, 204, 60);
-    } else color = base_color;
-    painter.fillRect(this->rect(), color);
-
-//    return;
-
-    if (piece == -1) {
-        return;
-    }
-
-    float scale = .85;
-    int h = this->height();
-    int offset = (int) round((1 - scale) * h / 2);
-    int dim = h - 2 * offset;
-//    cout << dim << ' ' << this->width() << '\n';
-    QRect target = QRect(offset, offset, dim, dim);
-    int ind = (int) piece;
-//    painter.drawImage(target, images[ind], QRect(0, 0, 504, 504));
-    painter.drawImage(target, images[ind]);
-//    cout << "Drew " << row << ", " << col << '\n';
-//    cout << x() << "  " << y() << "  " << width() << "  " << height() << '\n';
-}
-
-void Square::loadImages() {
     QString name_template = "/Users/benralston/Programming/Chess_root/Chess/Images/%1.png";
     QString filename;
+    QImage *images = new QImage[12];
+
     for (int i = 0; i < 12; i++) {
         filename = name_template.arg(i);
         images[i] = QImage(filename);
     }
+
+    return images;
 }
 
-void Square::setPiece(int r, int c, Piece newPiece) {
-    if (r == row && c == col)
-        piece = newPiece;
-    this->update();
+void Square::setPiece(int row, int col, Piece newPiece)
+{
+    if (row_ == row && col_ == col) {
+        piece_ = newPiece;
+        update();
+    }
 }
 
-void Square::setHighlight(int r, int c) {
-    if (r == row && c == col)
-        highlight = !highlight;
-    this->update();
+void Square::setHighlight(int row, int col)
+{
+    if (row_ == row && col_ == col) {
+        highlighted_ = !highlighted_;
+        update();
+    }
+}
+
+void Square::mousePressEvent(QMouseEvent *event)
+{
+    //TODO Handle left and right mouse clicks separately
+    emit clicked(row_, col_);
+}
+
+void Square::paintEvent(QPaintEvent *event)
+{
+    QPainter painter(this);
+
+    QColor color;
+    if (highlighted_)
+        color = highlightColor_;
+    else
+        color = lightSquare_ ? lightColor_ : darkColor_;
+
+    painter.fillRect(event->rect(), color);
+
+    if (piece_ == None)
+        return;
+
+    int height = event->rect().height();
+    float scale = .85;
+    int offset = static_cast<int>(round((1 - scale) * height / 2));
+    int length = height - 2 * offset;
+    QRect target = QRect(offset, offset, length, length);
+
+    painter.drawImage(target, images_[piece_]);
 }
