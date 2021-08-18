@@ -25,7 +25,7 @@ public:
 public slots:
     void newGame();
     void mousePress(int row, int col);
-    void updateTimerText(QString text, bool white);
+    void updateTimerText(const QString &text, bool white);
     void expiredTime(bool white);
 
 signals:
@@ -42,7 +42,7 @@ private:
     void clearSelectedSquare();
     void pressClock();
     void updateTimerLabels();
-    int squareIndexAdjustment(int rowOrColIndex, bool whiteTurn) const;
+    int squareIndexAdjustment(int rowOrColIndex) const;
 
     Ui::Chess *ui_;
     Game game_;

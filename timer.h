@@ -18,7 +18,7 @@ public slots:
     void updateTime();
 
 signals:
-    void changeText(QString text, bool white);
+    void changeText(const QString &text, bool white);
     void expiredTime(bool white);
 
 private:

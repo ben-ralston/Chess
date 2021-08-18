@@ -8,12 +8,12 @@
 #include "square.h"
 #include "timer.h"
 #include "position.h"
+#include "piece.h"
 
 using namespace std;
 
 Chess::Chess(QWidget *parent)
-    : QMainWindow(parent)
-    , ui_(new Ui::Chess)
+    : QMainWindow(parent), ui_(new Ui::Chess)
 {
     ui_->setupUi(this);
 
@@ -39,9 +39,6 @@ Chess::Chess(QWidget *parent)
     connect(newGame, &QPushButton::released, this, &Chess::newGame);
 
     Square *square;
-
-//    Square::loadImages();
-     // define our static initializer, which will call the init_static constructor, which will initialize s_mychars
 
     for (int row = 0; row < 8; row++) {
         for (int col = 0; col < 8; col++) {
@@ -141,7 +138,7 @@ void Chess::mousePress(int row, int col)
     }
 }
 
-void Chess::updateTimerText(QString text, bool white)
+void Chess::updateTimerText(const QString &text, bool white)
 {
     if (white)
         whiteTimerText_ = text;
@@ -184,11 +181,12 @@ void Chess::updatePosition()
 {
     Position position = game_.getPosition(shownMoveNumber_);
 
+    Piece piece;
     for (int row = 0; row < 8; row++) {
         for (int col = 0; col < 8; col++) {
-            emit setPiece(row, col,
-                          position.board[squareIndexAdjustment(row, whiteTurn_)]
-                                        [squareIndexAdjustment(col, whiteTurn_)]);
+            piece = position.board[squareIndexAdjustment(row)]
+                                  [squareIndexAdjustment(col)];
+            emit setPiece(row, col, piece);
         }
     }
 }
@@ -232,9 +230,9 @@ void Chess::updateTimerLabels()
     }
 }
 
-int Chess::squareIndexAdjustment(int rowOrColIndex, bool whiteTurn) const
+int Chess::squareIndexAdjustment(int rowOrColIndex) const
 {
-    if (whiteTurn)
+    if (whiteTurn_)
         return rowOrColIndex;
     else
         return 7 - rowOrColIndex;
