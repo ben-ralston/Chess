@@ -36,7 +36,7 @@ signals:
     void resetTimer(int startingTime, int increment, bool white);
 
 private:
-    void keyPressEvent(QKeyEvent *event);
+    void keyPressEvent(QKeyEvent *event) override;
     void updatePosition();
     void setSelectedSquare(int row, int col);
     void clearSelectedSquare();

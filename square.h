@@ -22,8 +22,8 @@ signals:
 
 private:
     static QImage *loadImages();
-    void paintEvent(QPaintEvent *event);
-    void mousePressEvent(QMouseEvent *event);
+    void paintEvent(QPaintEvent *event) override;
+    void mousePressEvent(QMouseEvent *event) override;
 
     static const QImage * const images_;
     static QColor lightColor_;

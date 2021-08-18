@@ -23,9 +23,9 @@ struct Position
             }
         }
 
-        return enPassantColumn == a.enPassantColumn
-               && kingsideCastle == a.kingsideCastle
-               && queensideCastle == a.queensideCastle;
+        return enPassantColumn == a.enPassantColumn &&
+               kingsideCastle == a.kingsideCastle &&
+               queensideCastle == a.queensideCastle;
     }
 };
 
