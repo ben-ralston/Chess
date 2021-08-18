@@ -1,87 +1,112 @@
 #include "timer.h"
 
-Timer::Timer(QObject *parent, int time, int inc, bool isWhite) : QObject(parent)
+Timer::Timer(QObject *parent, bool white, int startingTime, int increment)
+    : QObject(parent),
+      white_(white),
+      remainingTime_(startingTime),
+      increment_(increment)
 {
-    remainingTime = time;
-    increment = inc;
-    white = isWhite;
-    adjustment = false;
-    started = false;
+    mainTimer_ = new QTimer();
+    mainTimer_->setTimerType(Qt::PreciseTimer);
+    mainTimer_->setInterval(100);
+    connect(mainTimer_, &QTimer::timeout, this, &Timer::updateTime);
 
-    timer = new QTimer();
-    connect(timer, &QTimer::timeout, this, &Timer::updateTime);
+    altTimer_ = new QTimer();
+    altTimer_->setTimerType(Qt::PreciseTimer);
+    altTimer_->setSingleShot(true);
+    connect(altTimer_, &QTimer::timeout, this, &Timer::restartedUpdateTime);
 }
 
-void Timer::start(bool white) {
-    if (this->white != white)
-        return;
+Timer::~Timer()
+{
+    mainTimer_->stop();
+    altTimer_->stop();
+    delete mainTimer_;
+    delete altTimer_;
+}
 
-    if (remainingTime % 100 == 0) {
-        timer->start(100);
-    } else {
-        timer->start(remainingTime % 100);
-        adjustment = true;
+void Timer::updateText()
+{
+    int min = remainingTime_ / 60000;
+    int sec = (remainingTime_ % 60000) / 1000;
+    int tenths = (remainingTime_ % 1000) / 100 + (remainingTime_ % 100 != 0);
+
+    if (tenths == 10) {
+        tenths = 0;
+        sec += 1;
+        if (sec == 60) {
+            sec = 0;
+            min += 1;
+        }
     }
 
-//    if (started)
-//        remainingTime += increment;
-//    else
-//        started = true;
+    QString timeString;
+    if (min > 0)
+        timeString = QString("%1:%2").arg(min).arg(sec, 2, 10, QLatin1Char('0'));
+    else
+        timeString = QString("0:%1.%2").arg(sec, 2, 10, QLatin1Char('0')).arg(tenths);
+
+    emit currentTimeText(timeString, white_);
 }
 
-void Timer::pause(bool white) {
-    if (this->white != white)
+void Timer::start(bool white)
+{
+    if (white_ != white)
         return;
+
+    if (remainingTime_ % 100 == 0)
+        mainTimer_->start();
+    else
+        altTimer_->start(remainingTime_ % 100);
+}
+
+void Timer::pause(bool white)
+{
+    if (white_ != white)
+        return;
+
+    QTimer *timer;
+    if (altTimer_->isActive())
+        timer = altTimer_;
+    else
+        timer = mainTimer_;
 
     int timeLeft = timer->remainingTime();
     timer->stop();
+    int timeElapsed = timer->interval() - timeLeft;
 
-    remainingTime -= 100 - timeLeft;
-
-    remainingTime += increment;
-    setText();
+    remainingTime_ += increment_ - timeElapsed;
+    updateText();
 }
 
-void Timer::reset(int time, int inc, bool white) {
-    if (this->white == white) {
-        timer->stop();
-        remainingTime = time;
-        increment = inc;
-        adjustment = false;
-        started = false;
-        setText();
-    }
+void Timer::reset(bool white, int startingTime, int increment)
+{
+    if (white_ != white)
+        return;
+
+    mainTimer_->stop();
+    altTimer_->stop();
+    remainingTime_ = startingTime;
+    increment_ = increment;
+    updateText();
 }
 
-void Timer::updateTime() {
-    if (adjustment) {
-        remainingTime -= remainingTime % 100;
-        adjustment = false;
-        timer->start(100);
-    }
+void Timer::updateTime()
+{
+    remainingTime_ -= 100;
+    updateText();
+
+    if (remainingTime_ <= 0)
+        emit expiredTime(white_);
+}
+
+void Timer::restartedUpdateTime()
+{
+    remainingTime_ -= remainingTime_ % 100;
+    updateText();
+
+    if (remainingTime_ <= 0)
+        emit expiredTime(white_);
     else
-        remainingTime -= 100;
-
-    setText();
-
-    if (remainingTime <= 0)
-        emit expiredTime(white);
-}
-
-void Timer::setText() {
-    emit changeText(createText(), white);
-}
-
-QString Timer::createText() {
-    int min = floor(remainingTime / 60000);
-    int sec = floor((remainingTime % 60000) / 1000);
-    int tenths = ceil((remainingTime % 1000) / 100);
-
-    QString out;
-    if (min > 0)
-        out = QString("%1:%2").arg(min).arg(sec, 2, 10, QLatin1Char('0'));
-    else
-        out = QString("0:%1.%2").arg(sec, 2, 10, QLatin1Char('0')).arg(tenths);
-
-    return out;
+        mainTimer_->start();
 }

@@ -22,7 +22,7 @@ public:
     explicit Chess(QWidget *parent = nullptr);
     ~Chess();
 
-public slots:
+private slots:
     void newGame();
     void mousePress(int row, int col);
     void updateTimerText(const QString &text, bool white);
@@ -46,15 +46,17 @@ private:
 
     Ui::Chess *ui_;
     Game game_;
-    ChessLayout *layout_;
     int selected_[2];
-    int shownMoveNumber_, trueMoveNumber_;
+    int shownMoveNumber_;
+    int trueMoveNumber_;
     bool whiteTurn_;
+    ChessLayout *layout_;
     Timer *whiteTimer_;
     Timer *blackTimer_;
     QLabel *topTimerLabel_;
     QLabel *bottomTimerLabel_;
-    QString whiteTimerText_, blackTimerText_;
+    QString whiteTimerText_;
+    QString blackTimerText_;
 };
 
 #endif // CHESS_H

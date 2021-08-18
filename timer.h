@@ -8,27 +8,29 @@ class Timer : public QObject
 {
     Q_OBJECT
 public:
-    explicit Timer(QObject *parent = nullptr, int time = 300000, int inc = 0, bool isWhite = true);
-    void setText();
+    explicit Timer(QObject *parent, bool white, int startingTime = 300000, int increment = 0);
+    ~Timer();
+    void updateText();
 
 public slots:
     void start(bool white);
     void pause(bool white);
-    void reset(int time = 300000, int inc = 0, bool white = true);
+    void reset(bool white, int startingTime = 300000, int increment = 0);
+
+private slots:
     void updateTime();
+    void restartedUpdateTime();
 
 signals:
-    void changeText(const QString &text, bool white);
+    void currentTimeText(const QString &text, bool white);
     void expiredTime(bool white);
 
 private:
-    QTimer *timer;
-    int remainingTime;
-    int increment;
-    bool white;
-    bool adjustment;
-    bool started;
-    QString createText();
+    QTimer *mainTimer_;
+    QTimer *altTimer_;
+    const bool white_;
+    int remainingTime_;
+    int increment_;
 };
 
 #endif // TIMER_H

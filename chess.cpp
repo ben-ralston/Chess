@@ -13,7 +13,12 @@
 using namespace std;
 
 Chess::Chess(QWidget *parent)
-    : QMainWindow(parent), ui_(new Ui::Chess)
+    : QMainWindow(parent), ui_(new Ui::Chess),
+    game_(Game()),
+    selected_{ -1, -1 },
+    shownMoveNumber_(0),
+    trueMoveNumber_(0),
+    whiteTurn_(true)
 {
     ui_->setupUi(this);
 
@@ -51,34 +56,24 @@ Chess::Chess(QWidget *parent)
         }
     }
 
-    whiteTimer_ = new Timer(this, 30000, 2000, true);
-    blackTimer_ = new Timer(this, 30000, 5000, false);
-//    whiteTimer = new Timer(this, 300000, 0, true);
-//    blackTimer = new Timer(this, 300000, 0, false);
-
+    whiteTimer_ = new Timer(this, true, 30000, 2000);
+    blackTimer_ = new Timer(this, false, 30000, 5000);
     connect(this, &Chess::startTimer, whiteTimer_, &Timer::start);
     connect(this, &Chess::pauseTimer, whiteTimer_, &Timer::pause);
     connect(this, &Chess::resetTimer, whiteTimer_, &Timer::reset);
-    connect(whiteTimer_, &Timer::changeText, this, &Chess::updateTimerText);
+    connect(whiteTimer_, &Timer::currentTimeText, this, &Chess::updateTimerText);
     connect(whiteTimer_, &Timer::expiredTime, this, &Chess::expiredTime);
 
     connect(this, &Chess::startTimer, blackTimer_, &Timer::start);
     connect(this, &Chess::pauseTimer, blackTimer_, &Timer::pause);
     connect(this, &Chess::resetTimer, blackTimer_, &Timer::reset);
-    connect(blackTimer_, &Timer::changeText, this, &Chess::updateTimerText);
+    connect(blackTimer_, &Timer::currentTimeText, this, &Chess::updateTimerText);
     connect(blackTimer_, &Timer::expiredTime, this, &Chess::expiredTime);
 
-    whiteTimer_->setText();
-    blackTimer_->setText();
+    whiteTimer_->updateText();
+    blackTimer_->updateText();
 
     grabKeyboard();
-
-    game_ = Game();
-    selected_[0] = -1;
-    selected_[1] = -1;
-    shownMoveNumber_ = 0;
-    trueMoveNumber_ = 0;
-    whiteTurn_ = true;
 
     updatePosition();
 }
@@ -103,8 +98,8 @@ void Chess::newGame()
 
     updatePosition();
 
-    emit resetTimer(300000, 0, true);
-    emit resetTimer(300000, 0, false);
+    emit resetTimer(true, 300000, 0);
+    emit resetTimer(false, 300000, 0);
 }
 
 void Chess::mousePress(int row, int col)
