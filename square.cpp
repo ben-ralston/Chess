@@ -25,7 +25,7 @@ Square::Square(QWidget *parent, int row, int col)
 
 Square::~Square()
 {
-    delete [] images_;
+
 }
 
 QImage *Square::loadImages()

@@ -1,5 +1,7 @@
 #include "game.h"
 
+#include <array>
+
 using namespace std;
 
 Game::Game()
@@ -7,80 +9,123 @@ Game::Game()
     resetGame();
 }
 
-void Game::resetGame() {
-    whiteTurn = true;
-    whiteKingsideCastle = true;
-    whiteQueensideCastle = true;
-    blackKingsideCastle = true;
-    blackQueensideCastle = true;
-    whitePassantPawn = -1;
-    blackPassantPawn = -1;
-    movesNoProgess = 0;
+Game::~Game() {
 
-    setStartingPosition();
-    gameHistory.clear();
-    repeatPositions.clear();
-    gameHistory.push_back(savePosition());
 }
 
-void Game::setStartingPosition() {
-    for (int r = 0; r < 8; r++) {
-        if (r == 0) {
-            array<Piece,8> row = {BlackRook, BlackKnight, BlackBishop, BlackQueen,
-                                  BlackKing, BlackBishop, BlackKnight, BlackRook};
-            for (int c = 0; c < 8; c++) {
-                position[r][c] = row[c];
-            }
-        } else if (r == 1) {
-            array<Piece,8> row = {BlackPawn, BlackPawn, BlackPawn, BlackPawn,
-                                      BlackPawn, BlackPawn, BlackPawn, BlackPawn};
-            for (int c = 0; c < 8; c++) {
-                position[r][c] = row[c];
-            }
-        } else if (r == 6) {
-            array<Piece,8> row = {WhitePawn, WhitePawn, WhitePawn, WhitePawn,
-                                      WhitePawn, WhitePawn, WhitePawn, WhitePawn};
-            for (int c = 0; c < 8; c++) {
-                position[r][c] = row[c];
-            }
-        } else if (r == 7) {
-            array<Piece,8> row = {WhiteRook, WhiteKnight, WhiteBishop, WhiteQueen,
-                                      WhiteKing, WhiteBishop, WhiteKnight, WhiteRook};
-            for (int c = 0; c < 8; c++) {
-                position[r][c] = row[c];
-            }
-        } else {
-            array<Piece,8> row = {None, None, None, None,
-                                  None, None, None, None};
-            for (int c = 0; c < 8; c++) {
-                position[r][c] = row[c];
-            }
-        }
+void Game::resetGame()
+{
+    whiteTurn_ = true;
+    whiteKingsideCastle_ = true;
+    whiteQueensideCastle_ = true;
+    blackKingsideCastle_ = true;
+    blackQueensideCastle_ = true;
+    whitePassantPawn_ = -1;
+    blackPassantPawn_ = -1;
+    movesNoProgess_ = 0;
+
+    gameHistory_.clear();
+    repeatPositions_.clear();
+    setStartingPosition();
+    gameHistory_.push_back(savePosition());
+}
+
+int Game::tryMove(int from[2], int to[2])
+{
+    if (!whiteTurn_) {
+        from[0] = 7 - from[0];
+        from[1] = 7 - from[1];
+        to[0] = 7 - to[0];
+        to[1] = 7 - to[1];
+    }
+
+    if (!validMove(from, to))
+        return 0;
+    if (inCheck(whiteTurn_, from, to))
+        return 0;
+
+    Piece fromPiece = position_[from[0]][from[1]];
+    Piece toPiece = position_[to[0]][to[1]];
+    makeMove(from, to);
+    updateCastle(from, to);
+    updatePassant(from, to, fromPiece);
+    updateFiftyMoves(fromPiece, toPiece);
+    whiteTurn_ = !whiteTurn_;
+
+    if (isCheckMate()) {
+        resetGame();
+        cout << "Win!\n";
+        return 2;
+    }
+    if (isDraw()) {
+        resetGame();
+        cout << "Draw!\n";
+        return 2;
+    }
+
+    return 1;
+}
+
+Position Game::getPosition(int moveNum) const
+{
+    if (moveNum == -1)
+        return gameHistory_[gameHistory_.size() - 1];
+
+    return gameHistory_[moveNum];
+}
+
+bool Game::isSelectable(int row, int col) const
+{
+    if (whiteTurn_) {
+        if (position_[row][col] >= 0 && position_[row][col] <= 5)
+            return true;
+        else
+            return false;
+    } else {
+        if (position_[7 - row][7 - col] >= 6)
+            return true;
+        else
+            return false;
     }
 }
 
-Position Game::getPosition(int moveNum) {
-    if (moveNum == -1)
-        return gameHistory[(int) gameHistory.size() - 1];
 
-    return gameHistory[moveNum];
+
+
+
+
+
+
+
+
+
+
+
+
+
+void Game::setStartingPosition() {
+    for (int row = 0; row < 8; row++) {
+        for (int col = 0; col < 8; col++) {
+            position_[row][col] = startingPosition_[row][col];
+        }
+    }
 }
 
 Position Game::savePosition() {
     Position current;
     for (int r = 0; r < 8; r++) {
         for (int c = 0; c < 8; c++) {
-            current.board[r][c] = position[r][c];
+            current.board[r][c] = position_[r][c];
         }
     }
 
-    current.whiteTurn = whiteTurn;
+    current.whiteTurn = whiteTurn_;
 
     int from[2], to[2];
-    if (whiteTurn) {
+    if (whiteTurn_) {
         from[0] = 7;
         from[1] = 4;
-        if (position[from[0]][from[1]] != WhiteKing) {
+        if (position_[from[0]][from[1]] != WhiteKing) {
             current.kingsideCastle = false;
             current.queensideCastle = false;
         } else {
@@ -95,7 +140,7 @@ Position Game::savePosition() {
     } else {
         from[0] = 0;
         from[1] = 4;
-        if (position[from[0]][from[1]] != WhiteKing) {
+        if (position_[from[0]][from[1]] != WhiteKing) {
             current.kingsideCastle = false;
             current.queensideCastle = false;
         } else {
@@ -112,12 +157,12 @@ Position Game::savePosition() {
     int col;
     int row;
     Piece pawn;
-    if (whiteTurn) {
-        col = blackPassantPawn;
+    if (whiteTurn_) {
+        col = blackPassantPawn_;
         row = 3;
         pawn = WhitePawn;
     } else {
-        col = whitePassantPawn;
+        col = whitePassantPawn_;
         row = 4;
         pawn = BlackPawn;
     }
@@ -125,74 +170,24 @@ Position Game::savePosition() {
     if (col == -1)
         current.enPassantColumn = col;
     else if (col == 0) {
-        if (position[row][1] == pawn)
+        if (position_[row][1] == pawn)
             current.enPassantColumn = col;
         else
             current.enPassantColumn = -1;
     }
     else if (col == 7) {
-        if (position[row][6] == pawn)
+        if (position_[row][6] == pawn)
             current.enPassantColumn = col;
         else
             current.enPassantColumn = -1;
     } else {
-        if (position[row][col - 1] == pawn || position[row][col + 1] == pawn)
+        if (position_[row][col - 1] == pawn || position_[row][col + 1] == pawn)
             current.enPassantColumn = col;
         else
             current.enPassantColumn = -1;
     }
 
     return current;
-}
-
-bool Game::isSelectable(int row, int col) {
-    if (whiteTurn) {
-        if (position[row][col] >= 0 && position[row][col] <= 5)
-            return true;
-        else
-            return false;
-    } else {
-        if (position[7 - row][7 - col] >= 6)
-            return true;
-        else
-            return false;
-    }
-}
-
-int Game::tryMove(int from[2], int to[2]) {
-    if (!whiteTurn) {
-        from[0] = 7 - from[0];
-        from[1] = 7 - from[1];
-        to[0] = 7 - to[0];
-        to[1] = 7 - to[1];
-    }
-
-    if (!validMove(from, to))
-        return 0;
-    if (inCheck(whiteTurn, from, to))
-        return 0;
-
-    Piece fromPiece = position[from[0]][from[1]];
-    Piece toPiece = position[to[0]][to[1]];
-    makeMove(from, to);
-    updateCastle(from, to);
-    updatePassant(from, to, fromPiece);
-    updateFiftyMoves(fromPiece, toPiece);
-    whiteTurn = !whiteTurn;
-
-    if (isCheckMate()) {
-        resetGame();
-        cout << "Win!\n";
-        return 2;
-    }
-
-    if (isDraw()) {
-        resetGame();
-        cout << "Draw!\n";
-        return 2;
-    }
-
-    return 1;
 }
 
 void Game::makeMove(int from[2], int to[2]) {
@@ -206,14 +201,14 @@ void Game::makeMove(int from[2], int to[2]) {
 }
 
 void Game::makeStandardMove(int from[2], int to[2]) {
-    Piece toMove = position[from[0]][from[1]];
-    position[from[0]][from[1]] = None;
-    position[to[0]][to[1]] = toMove;
+    Piece toMove = position_[from[0]][from[1]];
+    position_[from[0]][from[1]] = None;
+    position_[to[0]][to[1]] = toMove;
 }
 
 bool Game::makeCastleMove(int from[2], int to[2]) {
 
-    if (position[from[0]][from[1]] == WhiteKing) {
+    if (position_[from[0]][from[1]] == WhiteKing) {
         if (from[0] == 7 && from[1] == 4 && to[0] == 7 && to[1] == 6) {
             int r_from[2] = {7, 7};
             int r_to[2] = {7, 5};
@@ -230,7 +225,7 @@ bool Game::makeCastleMove(int from[2], int to[2]) {
         }
     }
 
-    if (position[from[0]][from[1]] == BlackKing) {
+    if (position_[from[0]][from[1]] == BlackKing) {
         if (from[0] == 0 && from[1] == 4 && to[0] == 0 && to[1] == 6) {
             int r_from[2] = {0, 7};
             int r_to[2] = {0, 5};
@@ -255,21 +250,21 @@ bool Game::makePassantMove(int from[2], int to[2]) {
     int passantRow;
     int passantCol;
 
-    if (position[from[0]][from[1]] == WhitePawn) {
+    if (position_[from[0]][from[1]] == WhitePawn) {
         removeDirection = 1;
         passantRow = 2;
-        passantCol = blackPassantPawn;
+        passantCol = blackPassantPawn_;
 
-    } else if (position[from[0]][from[1]] == BlackPawn) {
+    } else if (position_[from[0]][from[1]] == BlackPawn) {
         removeDirection = -1;
         passantRow = 5;
-        passantCol = whitePassantPawn;
+        passantCol = whitePassantPawn_;
     } else
         return false;
 
     if (to[0] == passantRow && to[1] == passantCol) {
         makeStandardMove(from, to);
-        position[passantRow + removeDirection][passantCol] = None;
+        position_[passantRow + removeDirection][passantCol] = None;
         return true;
     }
 
@@ -280,18 +275,18 @@ bool Game::makePromotionMove(int from[2], int to[2], bool autoQueen) {
     int promRow;
     Piece promPiece;
 
-    if (position[from[0]][from[1]] == WhitePawn) {
+    if (position_[from[0]][from[1]] == WhitePawn) {
         promRow = 0;
         promPiece = WhiteQueen;
-    } else if (position[from[0]][from[1]] == BlackPawn) {
+    } else if (position_[from[0]][from[1]] == BlackPawn) {
         promRow = 7;
         promPiece = BlackQueen;
     } else
         return false;
 
     if (to[0] == promRow) {
-        position[from[0]][from[1]] = None;
-        position[to[0]][to[1]] = promPiece;
+        position_[from[0]][from[1]] = None;
+        position_[to[0]][to[1]] = promPiece;
         return true;
     }
 
@@ -299,7 +294,7 @@ bool Game::makePromotionMove(int from[2], int to[2], bool autoQueen) {
 }
 
 bool Game::validMove(int from[2], int to[2]) {
-    switch (position[from[0]][from[1]]) {
+    switch (position_[from[0]][from[1]]) {
     case WhitePawn:
         return validPawnMove(from, to, true);
     case BlackPawn:
@@ -339,13 +334,13 @@ bool Game::validPawnMove(int from[2], int to[2], bool white) {
         direction = -1;
         firstMove = from[0] == 6;
         passantRow = 2;
-        passantCol = blackPassantPawn;
+        passantCol = blackPassantPawn_;
     }
     else {
         direction = 1;
         firstMove = from[0] == 1;
         passantRow = 5;
-        passantCol = whitePassantPawn;
+        passantCol = whitePassantPawn_;
     }
 
     if (firstMove) {
@@ -446,7 +441,7 @@ bool Game::validQueenMove(int from[2], int to[2], bool white) {
 bool Game::validKingMove(int from[2], int to[2], bool white) {
     if (white) {
         if (from[0] == 7 && from[1] == 4 && to[0] == 7 && to[1] == 6) {
-            if (!whiteKingsideCastle)
+            if (!whiteKingsideCastle_)
                 return false;
             if (inCheck(true))
                 return false;
@@ -458,7 +453,7 @@ bool Game::validKingMove(int from[2], int to[2], bool white) {
             return true;
         }
         if (from[0] == 7 && from[1] == 4 && to[0] == 7 && to[1] == 2) {
-            if (!whiteQueensideCastle)
+            if (!whiteQueensideCastle_)
                 return false;
             if (inCheck(true))
                 return false;
@@ -473,7 +468,7 @@ bool Game::validKingMove(int from[2], int to[2], bool white) {
         }
     } else {
         if (from[0] == 0 && from[1] == 4 && to[0] == 0 && to[1] == 6) {
-            if (!blackKingsideCastle)
+            if (!blackKingsideCastle_)
                 return false;
             if (inCheck(false))
                 return false;
@@ -485,7 +480,7 @@ bool Game::validKingMove(int from[2], int to[2], bool white) {
             return true;
         }
         if (from[0] == 0 && from[1] == 4 && to[0] == 0 && to[1] == 2) {
-            if (!blackQueensideCastle)
+            if (!blackQueensideCastle_)
                 return false;
             if (inCheck(false))
                 return false;
@@ -510,7 +505,7 @@ bool Game::validKingMove(int from[2], int to[2], bool white) {
 }
 
 bool Game::emptySpace(int r, int c) {
-    return position[r][c] == None;
+    return position_[r][c] == None;
 }
 
 bool Game::emptySpace(int pos[2]) {
@@ -519,9 +514,9 @@ bool Game::emptySpace(int pos[2]) {
 
 bool Game::opponentPiece(int r, int c, bool white) {
     if (white)
-        return position[r][c] >= 6;
+        return position_[r][c] >= 6;
     else
-        return position[r][c] >= 0 && position[r][c] <= 5;
+        return position_[r][c] >= 0 && position_[r][c] <= 5;
 }
 
 bool Game::opponentPiece(int pos[2], bool white) {
@@ -539,7 +534,7 @@ bool Game::inCheck(bool white) {
     int kingPos[2];
     for (int r = 0; r < 8; r++) {
         for (int c = 0; c < 8; c++) {
-            if (position[r][c] == king) {
+            if (position_[r][c] == king) {
                 kingPos[0] = r;
                 kingPos[1] = c;
                 found = true;
@@ -568,7 +563,7 @@ bool Game::inCheck(bool white, int from[2], int to[2]) {
     Piece boardCopy[8][8];
     for (int r = 0; r < 8; r++) {
         for (int c = 0; c < 8; c++) {
-            boardCopy[r][c] = position[r][c];
+            boardCopy[r][c] = position_[r][c];
         }
     }
 
@@ -578,7 +573,7 @@ bool Game::inCheck(bool white, int from[2], int to[2]) {
 
     for (int r = 0; r < 8; r++) {
         for (int c = 0; c < 8; c++) {
-            position[r][c] = boardCopy[r][c];
+            position_[r][c] = boardCopy[r][c];
         }
     }
 
@@ -586,7 +581,7 @@ bool Game::inCheck(bool white, int from[2], int to[2]) {
 }
 
 bool Game::isCheckMate() {
-    if (!inCheck(whiteTurn))
+    if (!inCheck(whiteTurn_))
         return false;
 
     return !canMove();
@@ -597,7 +592,7 @@ bool Game::isDraw() {
 }
 
 bool Game::isStalemate() {
-    if (inCheck(whiteTurn))
+    if (inCheck(whiteTurn_))
         return false;
 
     return !canMove();
@@ -617,7 +612,7 @@ bool Game::insufficientMaterial() {
     bool lightSquare;
     for (int r = 0; r < 8; r++) {
         for (int c = 0; c < 8; c++) {
-            piece = position[r][c];
+            piece = position_[r][c];
             if (piece == None)
                 continue;
             pieceCount[piece]++;
@@ -675,7 +670,7 @@ bool Game::insufficientMaterial() {
 
 
 bool Game::fiftyMoves() {
-    if (movesNoProgess == 100)
+    if (movesNoProgess_ == 100)
         return true;
     return false;
 }
@@ -683,23 +678,23 @@ bool Game::fiftyMoves() {
 bool Game::isRepeat() {
     Position currentPos = savePosition();
 
-    int repLen = (int) repeatPositions.size();
-    int gameLen = (int) gameHistory.size();
+    int repLen = (int) repeatPositions_.size();
+    int gameLen = (int) gameHistory_.size();
 
     for (int i = 0; i < repLen; i++) {
-        if (currentPos == repeatPositions[i]) {
+        if (currentPos == repeatPositions_[i]) {
             return true;
         }
     }
 
     for (int i = 1; i < gameLen; i++) {
-        if (currentPos == gameHistory[i]) {
-            repeatPositions.push_back(currentPos);
+        if (currentPos == gameHistory_[i]) {
+            repeatPositions_.push_back(currentPos);
             break;
         }
     }
 
-    gameHistory.push_back(currentPos);
+    gameHistory_.push_back(currentPos);
     return false;
 }
 
@@ -717,10 +712,10 @@ bool Game::canMove() {
     int to[2];
     for (int r_from = 0; r_from < 8; r_from++) {
         for (int c_from = 0; c_from < 8; c_from++) {
-            piece = position[r_from][c_from];
-            if (whiteTurn && (piece < 0 || piece > 5))
+            piece = position_[r_from][c_from];
+            if (whiteTurn_ && (piece < 0 || piece > 5))
                 continue;
-            if (!whiteTurn && (piece < 6))
+            if (!whiteTurn_ && (piece < 6))
                 continue;
 
             from[0] = r_from;
@@ -730,7 +725,7 @@ bool Game::canMove() {
                 for (int c_to = 0; c_to < 8; c_to++) {
                     to[1] = c_to;
                     if (validMove(from, to)) {
-                        if (!inCheck(whiteTurn, from, to))
+                        if (!inCheck(whiteTurn_, from, to))
                             return true;
                     }
                 }
@@ -743,57 +738,57 @@ bool Game::canMove() {
 
 void Game::updateCastle(int from[2], int to[2]) {
     if (from[0] == 7 && from[1] == 4) {
-        whiteKingsideCastle = false;
-        whiteQueensideCastle = false;
+        whiteKingsideCastle_ = false;
+        whiteQueensideCastle_ = false;
     }
     if (from[0] == 0 && from[1] == 4) {
-        blackKingsideCastle = false;
-        blackQueensideCastle = false;
+        blackKingsideCastle_ = false;
+        blackQueensideCastle_ = false;
     }
     if ((from[0] == 7 && from[1] == 7) || (to[0] == 7 && to[1] == 7)) {
-        whiteKingsideCastle = false;
+        whiteKingsideCastle_ = false;
     }
     if ((from[0] == 7 && from[1] == 0) || (to[0] == 7 && to[1] == 0)) {
-        whiteQueensideCastle = false;
+        whiteQueensideCastle_ = false;
     }
     if ((from[0] == 0 && from[1] == 7) || (to[0] == 0 && to[1] == 7)) {
-        blackKingsideCastle = false;
+        blackKingsideCastle_ = false;
     }
     if ((from[0] == 0 && from[1] == 0) || (to[0] == 0 && to[1] == 0)) {
-        blackQueensideCastle = false;
+        blackQueensideCastle_ = false;
     }
 }
 
 void Game::updatePassant(int from[2], int to[2], Piece fromPiece) {
     if (fromPiece == WhitePawn) {
         if (to[0] - from[0] == -2) {
-            whitePassantPawn = to[1];
-            blackPassantPawn = -1;
+            whitePassantPawn_ = to[1];
+            blackPassantPawn_ = -1;
             return;
         }
     } else if (fromPiece == BlackPawn) {
         if (to[0] - from[0] == 2) {
-            whitePassantPawn = -1;
-            blackPassantPawn = to[1];
+            whitePassantPawn_ = -1;
+            blackPassantPawn_ = to[1];
             return;
         }
     }
 
-    whitePassantPawn = -1;
-    blackPassantPawn = -1;
+    whitePassantPawn_ = -1;
+    blackPassantPawn_ = -1;
 }
 
 void Game::updateFiftyMoves(Piece fromPiece, Piece toPiece) {
     if (fromPiece == WhitePawn || fromPiece == BlackPawn) {
-        movesNoProgess = 0;
+        movesNoProgess_ = 0;
         return;
     }
     if (toPiece != None) {
-        movesNoProgess = 0;
+        movesNoProgess_ = 0;
         return;
     }
 
-    movesNoProgess++;
+    movesNoProgess_++;
 }
 
 
