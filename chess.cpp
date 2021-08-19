@@ -13,12 +13,13 @@
 using namespace std;
 
 Chess::Chess(QWidget *parent)
-    : QMainWindow(parent), ui_(new Ui::Chess),
-    game_(Game()),
-    selected_{ -1, -1 },
-    shownMoveNumber_(0),
-    trueMoveNumber_(0),
-    whiteTurn_(true)
+    : QMainWindow(parent),
+      ui_(new Ui::Chess),
+      game_(Game()),
+      selected_{ -1, -1 },
+      shownMoveNumber_(0),
+      trueMoveNumber_(0),
+      whiteTurn_(true)
 {
     ui_->setupUi(this);
 
@@ -37,9 +38,15 @@ Chess::Chess(QWidget *parent)
     topLayout->addWidget(topTimerLabel_, 0, Qt::AlignLeft);
     bottomLayout->addWidget(bottomTimerLabel_, 0, Qt::AlignRight);
 
-    layout_->add(leftLayout, ChessLayout::West);
-    layout_->add(topLayout, ChessLayout::North);
-    layout_->add(bottomLayout, ChessLayout::South);
+    layout_->addLayout(leftLayout, ChessLayout::West);
+    layout_->addLayout(topLayout, ChessLayout::North);
+    layout_->addLayout(bottomLayout, ChessLayout::South);
+
+    QWidget *east;
+    east = new QWidget(this);
+    east->setStyleSheet("background-color:blue;");
+    east->show();
+    layout_->addWidget(east, ChessLayout::East);
 
     connect(newGame, &QPushButton::released, this, &Chess::newGame);
 
@@ -48,7 +55,7 @@ Chess::Chess(QWidget *parent)
     for (int row = 0; row < 8; row++) {
         for (int col = 0; col < 8; col++) {
             square = new Square(centralWidget, row, col);
-            layout_->addSquare(square, row, col);
+            layout_->addWidget(square, ChessLayout::Board, row, col);
 
             connect(this, &Chess::setPiece, square, &Square::setPiece);
             connect(this, &Chess::highlightSquare, square, &Square::setHighlight);
@@ -74,6 +81,8 @@ Chess::Chess(QWidget *parent)
     blackTimer_->updateText();
 
     grabKeyboard();
+
+    setMinimumSize(layout_->minimumSize());
 
     updatePosition();
 }

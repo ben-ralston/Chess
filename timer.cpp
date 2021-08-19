@@ -93,6 +93,7 @@ void Timer::reset(bool white, int startingTime, int increment)
 
 void Timer::updateTime()
 {
+    // TODO Prevent window resize events from delaying timer
     remainingTime_ -= 100;
     updateText();
 

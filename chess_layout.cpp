@@ -1,54 +1,31 @@
 #include "chess_layout.h"
 
+#include <QList>
+
 ChessLayout::ChessLayout(QWidget *parent, const QMargins &margins, int spacing)
     : QLayout(parent)
 {
     setContentsMargins(margins);
     setSpacing(spacing);
-
-    QWidget *w, *e, *n, *s;
-
-    w = new QWidget(parent);
-    w->setStyleSheet("background-color:red;");
-    w->show();
-
-    west = new QWidgetItem(w);
-
-    e = new QWidget(parent);
-    e->setStyleSheet("background-color:blue;");
-    e->show();
-
-    east = new QWidgetItem(e);
-
-    n = new QWidget(parent);
-    n->setStyleSheet("background-color:green;");
-    n->show();
-
-    north = new QWidgetItem(n);
-
-    s = new QWidget(parent);
-    s->setStyleSheet("background-color:purple;");
-    s->show();
-
-    south = new QWidgetItem(s);
 }
-
-ChessLayout::ChessLayout(int spacing)
-{
-    setSpacing(spacing);
-}
-
 
 ChessLayout::~ChessLayout()
 {
-    delete north;
-    delete south;
-    delete west;
-    delete east;
-
-    for (int i = 0; i < 64; i++) {
-        delete squares[i];
+    QLayoutItem *item;
+    while ((item = takeAt(0)) != nullptr) {
+        delete item->widget();
+        delete item;
     }
+}
+
+void ChessLayout::addLayout(QLayout *layout, Region region)
+{
+    add(layout, region);
+}
+
+void ChessLayout::addWidget(QWidget *widget, Region region, int row, int col)
+{
+    add(new QWidgetItem(widget), region, row, col);
 }
 
 void ChessLayout::addItem(QLayoutItem *item)
@@ -56,13 +33,9 @@ void ChessLayout::addItem(QLayoutItem *item)
     add(item, West);
 }
 
-void ChessLayout::addWidget(QWidget *widget, Region position)
+int ChessLayout::count() const
 {
-    add(new QWidgetItem(widget), position);
-}
-
-void ChessLayout::addSquare(Square *square, int row, int col) {
-    squares[8 * row + col] = new QWidgetItem(square);
+    return items_.size();
 }
 
 Qt::Orientations ChessLayout::expandingDirections() const
@@ -75,28 +48,10 @@ bool ChessLayout::hasHeightForWidth() const
     return false;
 }
 
-int ChessLayout::count() const
-{
-    return 68;
-}
-
 QLayoutItem *ChessLayout::itemAt(int index) const
 {
-    switch (index) {
-    case 0:
-        return west;
-    case 1:
-        return north;
-    case 2:
-        return east;
-    case 3:
-        return south;
-    }
-
-    if (index < 0 || index > 67)
-        return nullptr;
-
-    return squares[index - 4];
+    ItemWrapper *wrapper = items_.value(index);
+    return wrapper ? wrapper->item : nullptr;
 }
 
 QSize ChessLayout::minimumSize() const
@@ -106,61 +61,50 @@ QSize ChessLayout::minimumSize() const
 
 void ChessLayout::setGeometry(const QRect &rect)
 {
-    int sideMinWidth = 100;
-    int topHeight = 50;
-    int centerMinLength = 200;
-
     QMargins margins = contentsMargins();
-
-    int vertSpacing = 2 * spacing() + margins.top() + margins.bottom();
-    int horSpacing = 2 * spacing() + margins.left() + margins.right();
-
-    bool heightLimit;
-    if (rect.width() - 2 * sideMinWidth - horSpacing > rect.height() - 2 * topHeight - vertSpacing)
-        heightLimit = true;
-    else
-        heightLimit = false;
+    int verticalSpacing = 2 * spacing() + margins.top() + margins.bottom();
+    int horizontalSpacing = 2 * spacing() + margins.left() + margins.right();
 
     int centerLength;
-    int sideWidth;
-    int vertOffset;
+    if (rect.width() - 2 * sideMinWidth - horizontalSpacing > rect.height() - 2 * topHeight - verticalSpacing)
+        centerLength = rect.height() - 2 * topHeight - verticalSpacing;
+    else
+        centerLength = rect.width() - 2 * sideMinWidth - horizontalSpacing;
 
-    if (heightLimit) {
-        centerLength = rect.height() - 2 * topHeight - vertSpacing;
-        centerLength -= centerLength % 8;
-        vertOffset = (int) round((rect.height() - centerLength - vertSpacing - 2 * topHeight) / 2);
-        sideWidth = (int) round((rect.width() - centerLength - horSpacing) / 2);
-    } else {
-        centerLength = rect.width() - 2 * sideMinWidth - horSpacing;
-        centerLength -= centerLength % 8;
-        vertOffset = (int) round((rect.height() - centerLength - vertSpacing - 2 * topHeight) / 2);
-        sideWidth = (int) round((rect.width() - centerLength - horSpacing) / 2);
-    }
+    centerLength -= centerLength % 8;
+    int squareLength = centerLength / 8;
+
+    float twiceVerticalOffset = static_cast<float>(rect.height() - centerLength - verticalSpacing - 2 * topHeight);
+    int verticalOffset = static_cast<int>(round(twiceVerticalOffset / 2.));
+
+    float twiceSideWidth = static_cast<float>(rect.width() - centerLength - horizontalSpacing);
+    int sideWidth = static_cast<int>(round(twiceSideWidth / 2.));
 
     QLayout::setGeometry(rect);
 
-    west->setGeometry(QRect(rect.x() + margins.left(), rect.y() + margins.top(),
-                            sideWidth, rect.height() - margins.top() - margins.bottom()));
-    east->setGeometry(QRect(rect.x() + margins.left() + sideWidth + centerLength + 2 * spacing(), rect.y() + margins.top(),
-                            sideWidth, rect.height() - margins.top() - margins.bottom()));
+    for (int i = 0; i < items_.size(); ++i) {
+        ItemWrapper *wrapper = items_.at(i);
+        QLayoutItem *item = wrapper->item;
+        Region region = wrapper->region;
 
-    north->setGeometry(QRect(rect.x() + margins.left() + sideWidth + spacing(), rect.y() + margins.top(),
-                             centerLength, topHeight));
-    south->setGeometry(QRect(rect.x() + margins.left() + sideWidth + spacing(),
-                             rect.y() + margins.top() + topHeight + centerLength + 2 * spacing() + 2 * vertOffset,
-                             centerLength, topHeight));
-
-    int length = (int) centerLength / 8;
-
-    QLayoutItem *cur;
-
-    for (int row = 0; row < 8; row++) {
-        for (int col = 0; col < 8; col++) {
-            cur = squares[8 * row + col];
-            cur->setGeometry(QRect(margins.left() + sideWidth + spacing() + length * col,
-                                   margins.top() + topHeight + spacing() +vertOffset + length * row,
-                                   length, length));
-        }
+        if (region == West)
+            item->setGeometry(QRect(rect.x() + margins.left(), rect.y() + margins.top(),
+                                    sideWidth, rect.height() - margins.top() - margins.bottom()));
+        else if (region == North)
+            item->setGeometry(QRect(rect.x() + margins.left() + sideWidth + spacing(), rect.y() + margins.top(),
+                                     centerLength, topHeight));
+        else if (region == South)
+            item->setGeometry(QRect(rect.x() + margins.left() + sideWidth + spacing(),
+                                    rect.y() + margins.top() + topHeight + centerLength + 2 * spacing() + 2 * verticalOffset,
+                                    centerLength, topHeight));
+        else if (region == East)
+            item->setGeometry(QRect(rect.x() + margins.left() + sideWidth + centerLength + 2 * spacing(),
+                                    rect.y() + margins.top(),
+                                    sideWidth, rect.height() - margins.top() - margins.bottom()));
+        else
+            item->setGeometry(QRect(margins.left() + sideWidth + spacing() + squareLength * wrapper->col,
+                                   margins.top() + topHeight + spacing() +verticalOffset + squareLength * wrapper->row,
+                                   squareLength, squareLength));
     }
 }
 
@@ -171,42 +115,41 @@ QSize ChessLayout::sizeHint() const
 
 QLayoutItem *ChessLayout::takeAt(int index)
 {
+    if (index >= 0 && index < items_.size()) {
+        ItemWrapper *layoutStruct = items_.takeAt(index);
+        return layoutStruct->item;
+    }
     return nullptr;
-    // TODO implement method
 }
 
-void ChessLayout::add(QLayoutItem *item, Region position)
+void ChessLayout::add(QLayoutItem *item, Region region, int row, int col)
 {
-    switch (position) {
-    case North:
-        delete north->widget();
-        delete north;
-        north = item;
-        break;
-    case South:
-        delete south->widget();
-        delete south;
-        south = item;
-        break;
-    case East:
-        delete east->widget();
-        delete east;
-        east = item;
-        break;
-    case West:
-        delete west->widget();
-        delete west;
-        west = item;
-        break;
-    }
+    items_.append(new ItemWrapper(item, region, row, col));
 }
 
 QSize ChessLayout::calculateSize(SizeType sizeType) const
 {
     QSize totalSize;
 
-    totalSize.rheight() = 0;
-    totalSize.rwidth() = 0;
+    if (sizeType == MinimumSize) {
+        QMargins margins = contentsMargins();
+        int squareMinLength = 40;
+
+        totalSize.rheight() += 2 * spacing() + margins.top() + margins.bottom();
+        totalSize.rheight() += 2 * topHeight;
+        totalSize.rheight() += 8 * squareMinLength;
+
+        totalSize.rwidth() += 2 * spacing() + margins.left() + margins.right();
+        totalSize.rwidth() += 2 * sideMinWidth;
+        totalSize.rwidth() += 8 * squareMinLength;
+    } else {
+        totalSize.rheight() = 0;
+        totalSize.rwidth() = 0;
+    }
+
+    return totalSize;
+
+    // TODO Implement item-based size calculations
 
 //    QLayoutItem *item;
 //    QSize itemSize;
@@ -222,6 +165,4 @@ QSize ChessLayout::calculateSize(SizeType sizeType) const
 
 //        totalSize.rwidth() += itemSize.width();
 //    }
-
-    return totalSize;
 }

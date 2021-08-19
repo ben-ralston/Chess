@@ -60,7 +60,7 @@ void Square::setHighlight(int row, int col)
 
 void Square::mousePressEvent(QMouseEvent *event)
 {
-    //TODO Handle left and right mouse clicks separately
+    // TODO Handle left and right mouse clicks separately
     emit clicked(row_, col_);
 }
 

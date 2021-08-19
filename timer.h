@@ -26,11 +26,11 @@ signals:
     void expiredTime(bool white);
 
 private:
-    QTimer *mainTimer_;
-    QTimer *altTimer_;
     const bool white_;
     int remainingTime_;
     int increment_;
+    QTimer *mainTimer_;
+    QTimer *altTimer_;
 };
 
 #endif // TIMER_H
