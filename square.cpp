@@ -50,9 +50,9 @@ void Square::setPiece(int row, int col, Piece newPiece)
     }
 }
 
-void Square::setHighlight(int row, int col)
+void Square::setHighlight(int pos[2])
 {
-    if (row_ == row && col_ == col) {
+    if (row_ == pos[0] && col_ == pos[1]) {
         highlighted_ = !highlighted_;
         update();
     }

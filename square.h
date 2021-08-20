@@ -15,7 +15,7 @@ public:
 
 public slots:
     void setPiece(int row, int col, Piece piece);
-    void setHighlight(int row, int col);
+    void setHighlight(int pos[2]);
 
 signals:
     void clicked(int row, int col);

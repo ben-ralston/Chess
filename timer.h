@@ -7,6 +7,7 @@
 class Timer : public QObject
 {
     Q_OBJECT
+
 public:
     explicit Timer(QObject *parent, bool white, int startingTime = 300000, int increment = 0);
     ~Timer();

@@ -13,15 +13,12 @@
 using namespace std;
 
 Chess::Chess(QWidget *parent)
-    : QMainWindow(parent),
-      ui_(new Ui::Chess),
-      game_(Game()),
-      selected_{ -1, -1 },
-      shownMoveNumber_(0),
-      trueMoveNumber_(0),
-      whiteTurn_(true)
+    : QMainWindow(parent), ui_(new Ui::Chess)
 {
     ui_->setupUi(this);
+
+    game_ = new Game(this);
+    connect(this, &Chess::keyPress, game_, &Game::keyPress);
 
     QWidget *centralWidget = this->findChild<QWidget *>("centralwidget");
     QPushButton *newGame = this->findChild<QPushButton *>("newGame");
@@ -57,9 +54,9 @@ Chess::Chess(QWidget *parent)
             square = new Square(centralWidget, row, col);
             layout_->addWidget(square, ChessLayout::Board, row, col);
 
-            connect(this, &Chess::setPiece, square, &Square::setPiece);
-            connect(this, &Chess::highlightSquare, square, &Square::setHighlight);
-            connect(square, &Square::clicked, this, &Chess::mousePress);
+            connect(game_, &Game::setPiece, square, &Square::setPiece);
+            connect(game_, &Game::highlightSquare, square, &Square::setHighlight);
+            connect(square, &Square::clicked, game_, &Game::mousePress);
         }
     }
 
@@ -69,13 +66,13 @@ Chess::Chess(QWidget *parent)
     connect(this, &Chess::pauseTimer, whiteTimer_, &Timer::pause);
     connect(this, &Chess::resetTimer, whiteTimer_, &Timer::reset);
     connect(whiteTimer_, &Timer::currentTimeText, this, &Chess::updateTimerText);
-    connect(whiteTimer_, &Timer::expiredTime, this, &Chess::expiredTime);
+    connect(whiteTimer_, &Timer::expiredTime, game_, &Game::expiredTime);
 
     connect(this, &Chess::startTimer, blackTimer_, &Timer::start);
     connect(this, &Chess::pauseTimer, blackTimer_, &Timer::pause);
     connect(this, &Chess::resetTimer, blackTimer_, &Timer::reset);
     connect(blackTimer_, &Timer::currentTimeText, this, &Chess::updateTimerText);
-    connect(blackTimer_, &Timer::expiredTime, this, &Chess::expiredTime);
+    connect(blackTimer_, &Timer::expiredTime, game_, &Game::expiredTime);
 
     whiteTimer_->updateText();
     blackTimer_->updateText();
@@ -84,12 +81,13 @@ Chess::Chess(QWidget *parent)
 
     setMinimumSize(layout_->minimumSize());
 
-    updatePosition();
+    game_->updatePosition();
 }
 
 Chess::~Chess()
 {
     delete ui_;
+    delete game_;
     delete layout_;
     delete whiteTimer_;
     delete blackTimer_;
@@ -99,47 +97,10 @@ Chess::~Chess()
 
 void Chess::newGame()
 {
-    game_.resetGame();
-    shownMoveNumber_ = 0;
-    trueMoveNumber_ = 0;
-    whiteTurn_ = true;
-    clearSelectedSquare();
-
-    updatePosition();
+    game_->resetGame();
 
     emit resetTimer(true, 300000, 0);
     emit resetTimer(false, 300000, 0);
-}
-
-void Chess::mousePress(int row, int col)
-{
-    if (shownMoveNumber_ != trueMoveNumber_)
-        return;
-
-    bool selectable = game_.isSelectable(row, col);
-
-    if (selected_[0] == row && selected_[1] == col) {
-        clearSelectedSquare();
-    } else if (selectable) {
-        setSelectedSquare(row, col);
-    } else if (selected_[0] != -1) {
-        int from[2] = {selected_[0], selected_[1]};
-        int to[2] = {row, col};
-
-        // TODO Replace int outcome with enumerated type for different outcomes
-        int outcome = game_.tryMove(from, to);
-
-        if (outcome == 1) {
-            shownMoveNumber_++;
-            trueMoveNumber_++;
-            whiteTurn_ = !whiteTurn_;
-            pressClock();
-        } else if (outcome == 2)
-            newGame();
-
-        clearSelectedSquare();
-        updatePosition();
-    }
 }
 
 void Chess::updateTimerText(const QString &text, bool white)
@@ -152,92 +113,37 @@ void Chess::updateTimerText(const QString &text, bool white)
     updateTimerLabels();
 }
 
-void Chess::expiredTime(bool white)
-{
-    newGame();
-}
 
+// TODO Transfer keypress control to Game
 void Chess::keyPressEvent(QKeyEvent *event)
 {
-    if (event->key() == Qt::Key_Down) {
-        if (shownMoveNumber_ == 0)
-           return;
-        shownMoveNumber_ = 0;
-    } else if (event->key() == Qt::Key_Left) {
-        if (shownMoveNumber_ == 0)
-            return;
-        shownMoveNumber_--;
-    } else if (event->key() == Qt::Key_Right) {
-        if (shownMoveNumber_ == trueMoveNumber_)
-            return;
-        shownMoveNumber_++;
-    } else if (event->key() == Qt::Key_Up) {
-        if (shownMoveNumber_ == trueMoveNumber_)
-            return;
-        shownMoveNumber_ = trueMoveNumber_;
-    }
-
-    clearSelectedSquare();
-    updatePosition();
-}
-
-void Chess::updatePosition()
-{
-    Position position = game_.getPosition(shownMoveNumber_);
-
-    Piece piece;
-    for (int row = 0; row < 8; row++) {
-        for (int col = 0; col < 8; col++) {
-            piece = position.board[squareIndexAdjustment(row)]
-                                  [squareIndexAdjustment(col)];
-            emit setPiece(row, col, piece);
-        }
-    }
-}
-
-void Chess::setSelectedSquare(int row, int col)
-{
-    clearSelectedSquare();
-    selected_[0] = row;
-    selected_[1] = col;
-    emit highlightSquare(row, col);
-}
-
-void Chess::clearSelectedSquare()
-{
-    if (selected_[0] == -1)
-        return;
-
-    emit highlightSquare(selected_[0], selected_[1]);
-    selected_[0] = -1;
-    selected_[1] = -1;
+    if (event->key() == Qt::Key_Down)
+        emit keyPress(event->key());
+    else if (event->key() == Qt::Key_Left)
+        emit keyPress(event->key());
+    else if (event->key() == Qt::Key_Right)
+        emit keyPress(event->key());
+    else if (event->key() == Qt::Key_Up)
+        emit keyPress(event->key());
 }
 
 void Chess::pressClock()
 {
-    if (trueMoveNumber_ == 2)
-        emit startTimer(whiteTurn_);
-    else if (trueMoveNumber_ > 2) {
-        emit startTimer(whiteTurn_);
-        emit pauseTimer(!whiteTurn_);
-    }
+//    if (trueMoveNumber_ == 2)
+//        emit startTimer(whiteTurn_);
+//    else if (trueMoveNumber_ > 2) {
+//        emit startTimer(whiteTurn_);
+//        emit pauseTimer(!whiteTurn_);
+//    }
 }
 
 void Chess::updateTimerLabels()
 {
-    if (whiteTurn_) {
-        bottomTimerLabel_->setText(whiteTimerText_);
-        topTimerLabel_->setText(blackTimerText_);
-    } else {
-        bottomTimerLabel_->setText(blackTimerText_);
-        topTimerLabel_->setText(whiteTimerText_);
-    }
-}
-
-int Chess::squareIndexAdjustment(int rowOrColIndex) const
-{
-    if (whiteTurn_)
-        return rowOrColIndex;
-    else
-        return 7 - rowOrColIndex;
+//    if (whiteTurn_) {
+//        bottomTimerLabel_->setText(whiteTimerText_);
+//        topTimerLabel_->setText(blackTimerText_);
+//    } else {
+//        bottomTimerLabel_->setText(blackTimerText_);
+//        topTimerLabel_->setText(whiteTimerText_);
+//    }
 }
