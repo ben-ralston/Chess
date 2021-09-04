@@ -20,19 +20,20 @@ public slots:
 signals:
     void clicked(int row, int col);
 
+protected:
+    bool lightSquare_;
+    const int row_;
+    const int col_;
+    Piece piece_;
+
 private:
     static QImage *loadImages();
     void paintEvent(QPaintEvent *event) override;
     void mousePressEvent(QMouseEvent *event) override;
-
     static const QImage * const images_;
     static QColor lightColor_;
     static QColor darkColor_;
     static QColor highlightColor_;
-    const int row_;
-    const int col_;
-    const bool lightSquare_;
-    Piece piece_;
     bool highlighted_;
 };
 

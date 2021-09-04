@@ -6,6 +6,7 @@
 
 #include <QObject>
 #include <QKeyEvent>
+#include <QString>
 
 #include "piece.h"
 #include "position.h"
@@ -20,15 +21,22 @@ public:
     void updatePosition();
 
 public slots:
+    void completePromotion(Piece piece);
     void expiredTime(bool white);
     void keyPress(int key);
     void mousePress(int row, int col);
     void resetGame();
+    void updateTimerText(const QString &text, bool white);
 
 signals:
     void highlightSquare(int pos[2]);
-//    void highlightSquare(int row, int col);
     void setPiece(int row, int col, Piece piece);
+    void setPromotionColor(bool white);
+    void setPromotionVisibilty(bool visible);
+    void startTimer(bool white);
+    void pauseTimer(bool white);
+    void resetTimer(int startingTime, int increment, bool white);
+    void updateTimerLabels(const QString &text, bool top);
 
 private:
     bool canMove();
@@ -44,23 +52,26 @@ private:
     bool insufficientMaterial() const;
     bool isCheckMate();
     bool isDraw();
+    bool isPromotion(int from[2], int to[2]);
     bool isRepeat();
     bool isSelectable(int row, int col) const;
     bool isStalemate();
     bool makeCastleMove(int from[2], int to[2]);
     void makeMove(int from[2], int to[2]);
     bool makePassantMove(int from[2], int to[2]);
-    bool makePromotionMove(int from[2], int to[2], bool autoQueen);
     void makeStandardMove(int from[2], int to[2]);
     bool opponentPiece(int row, int col, bool white) const;
     bool opponentPiece(int pos[2], bool white) const;
     Piece pieceAt(int row, int col) const;
     Piece pieceAt(int pos[2]) const;
+    void pressClock();
     Position savePosition();
     void setSelectedSquare(int row, int col);
     void setStartingPosition();
     void updateCastle(int from[2], int to[2]);
+    void updateClocks();
     void updateFiftyMoves(Piece fromPiece, Piece toPiece);
+    void updateGameInfo(int from[2], int to[2], Piece fromPiece, Piece toPiece);
     void updatePassant(int from[2], int to[2], Piece fromPiece);
     bool validBishopMove(int from[2], int to[2]) const;
     bool validKingMove(int from[2], int to[2]);
@@ -95,6 +106,11 @@ private:
     int whitePassantPawn_;
     int blackPassantPawn_;
     int movesNoProgess_;
+    QString whiteTimerText_;
+    QString blackTimerText_;
+    bool choosingPromotionPiece_;
+    int savedFrom_[2];
+    int savedTo_[2];
 };
 
 #endif // GAME_H

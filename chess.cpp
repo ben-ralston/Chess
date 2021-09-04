@@ -6,6 +6,7 @@
 #include "game.h"
 #include "chess_layout.h"
 #include "square.h"
+#include "promotion_square.h"
 #include "timer.h"
 #include "position.h"
 #include "piece.h"
@@ -60,19 +61,33 @@ Chess::Chess(QWidget *parent)
         }
     }
 
+    PromotionSquare *promoSquare;
+    for (int row = 0; row < 2; row++) {
+        for (int col = 0; col < 2; col++) {
+            promoSquare = new PromotionSquare(centralWidget, row, col);
+            layout_->addWidget(promoSquare, ChessLayout::Promotion, row, col);
+
+            connect(game_, &Game::setPromotionColor, promoSquare, &PromotionSquare::setColor);
+            connect(game_, &Game::setPromotionVisibilty, promoSquare, &PromotionSquare::setVisibility);
+            connect(promoSquare, &PromotionSquare::promotionPiece, game_, &Game::completePromotion);
+        }
+    }
+
     whiteTimer_ = new Timer(this, true, 30000, 2000);
     blackTimer_ = new Timer(this, false, 30000, 5000);
-    connect(this, &Chess::startTimer, whiteTimer_, &Timer::start);
-    connect(this, &Chess::pauseTimer, whiteTimer_, &Timer::pause);
-    connect(this, &Chess::resetTimer, whiteTimer_, &Timer::reset);
-    connect(whiteTimer_, &Timer::currentTimeText, this, &Chess::updateTimerText);
+    connect(game_, &Game::startTimer, whiteTimer_, &Timer::start);
+    connect(game_, &Game::pauseTimer, whiteTimer_, &Timer::pause);
+    connect(game_, &Game::resetTimer, whiteTimer_, &Timer::reset);
+    connect(whiteTimer_, &Timer::currentTimeText, game_, &Game::updateTimerText);
     connect(whiteTimer_, &Timer::expiredTime, game_, &Game::expiredTime);
 
-    connect(this, &Chess::startTimer, blackTimer_, &Timer::start);
-    connect(this, &Chess::pauseTimer, blackTimer_, &Timer::pause);
-    connect(this, &Chess::resetTimer, blackTimer_, &Timer::reset);
-    connect(blackTimer_, &Timer::currentTimeText, this, &Chess::updateTimerText);
+    connect(game_, &Game::startTimer, blackTimer_, &Timer::start);
+    connect(game_, &Game::pauseTimer, blackTimer_, &Timer::pause);
+    connect(game_, &Game::resetTimer, blackTimer_, &Timer::reset);
+    connect(blackTimer_, &Timer::currentTimeText, game_, &Game::updateTimerText);
     connect(blackTimer_, &Timer::expiredTime, game_, &Game::expiredTime);
+
+    connect(game_, &Game::updateTimerLabels, this, &Chess::updateTimerLabels);
 
     whiteTimer_->updateText();
     blackTimer_->updateText();
@@ -98,23 +113,16 @@ Chess::~Chess()
 void Chess::newGame()
 {
     game_->resetGame();
-
-    emit resetTimer(true, 300000, 0);
-    emit resetTimer(false, 300000, 0);
 }
 
-void Chess::updateTimerText(const QString &text, bool white)
+void Chess::updateTimerLabels(const QString &text, bool top)
 {
-    if (white)
-        whiteTimerText_ = text;
+    if (top)
+        topTimerLabel_->setText(text);
     else
-        blackTimerText_ = text;
-
-    updateTimerLabels();
+        bottomTimerLabel_->setText(text);
 }
 
-
-// TODO Transfer keypress control to Game
 void Chess::keyPressEvent(QKeyEvent *event)
 {
     if (event->key() == Qt::Key_Down)
@@ -125,25 +133,4 @@ void Chess::keyPressEvent(QKeyEvent *event)
         emit keyPress(event->key());
     else if (event->key() == Qt::Key_Up)
         emit keyPress(event->key());
-}
-
-void Chess::pressClock()
-{
-//    if (trueMoveNumber_ == 2)
-//        emit startTimer(whiteTurn_);
-//    else if (trueMoveNumber_ > 2) {
-//        emit startTimer(whiteTurn_);
-//        emit pauseTimer(!whiteTurn_);
-//    }
-}
-
-void Chess::updateTimerLabels()
-{
-//    if (whiteTurn_) {
-//        bottomTimerLabel_->setText(whiteTimerText_);
-//        topTimerLabel_->setText(blackTimerText_);
-//    } else {
-//        bottomTimerLabel_->setText(blackTimerText_);
-//        topTimerLabel_->setText(whiteTimerText_);
-//    }
 }

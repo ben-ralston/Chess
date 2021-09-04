@@ -10,7 +10,7 @@
 class ChessLayout : public QLayout
 {
 public:
-    enum Region { West, North, South, East, Board };
+    enum Region { West, North, South, East, Board, Promotion };
 
     explicit ChessLayout(QWidget *parent, const QMargins &margins = QMargins(), int spacing = -1);
     ~ChessLayout();

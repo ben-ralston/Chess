@@ -80,6 +80,15 @@ void ChessLayout::setGeometry(const QRect &rect)
     float twiceSideWidth = static_cast<float>(rect.width() - centerLength - horizontalSpacing);
     int sideWidth = static_cast<int>(round(twiceSideWidth / 2.));
 
+    int boardLeft = margins.left() + sideWidth + spacing();
+    int boardTop = margins.top() + topHeight + spacing() + verticalOffset;
+
+    float promotionSquareScale = 1.25;
+    int promotionSquareLength = static_cast<int>(round(squareLength * promotionSquareScale));
+
+    int promotionSquareLeft = boardLeft + centerLength / 2 - promotionSquareLength;
+    int promotionSquareTop = boardTop + centerLength / 2 - promotionSquareLength;
+
     QLayout::setGeometry(rect);
 
     for (int i = 0; i < items_.size(); ++i) {
@@ -101,10 +110,14 @@ void ChessLayout::setGeometry(const QRect &rect)
             item->setGeometry(QRect(rect.x() + margins.left() + sideWidth + centerLength + 2 * spacing(),
                                     rect.y() + margins.top(),
                                     sideWidth, rect.height() - margins.top() - margins.bottom()));
-        else
+        else if (region == Board)
             item->setGeometry(QRect(margins.left() + sideWidth + spacing() + squareLength * wrapper->col,
-                                   margins.top() + topHeight + spacing() +verticalOffset + squareLength * wrapper->row,
+                                   margins.top() + topHeight + spacing() + verticalOffset + squareLength * wrapper->row,
                                    squareLength, squareLength));
+        else
+            item->setGeometry(QRect(promotionSquareLeft + promotionSquareLength * wrapper->col,
+                                    promotionSquareTop + promotionSquareLength * wrapper->row,
+                                    promotionSquareLength, promotionSquareLength));
     }
 }
 

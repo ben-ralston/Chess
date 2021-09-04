@@ -24,18 +24,13 @@ public:
 
 private slots:
     void newGame();
-    void updateTimerText(const QString &text, bool white);
+    void updateTimerLabels(const QString &text, bool top);
 
 signals:
     void keyPress(int key);
-    void startTimer(bool white);
-    void pauseTimer(bool white);
-    void resetTimer(int startingTime, int increment, bool white);
 
 private:
     void keyPressEvent(QKeyEvent *event) override;
-    void pressClock();
-    void updateTimerLabels();
 
     Ui::Chess *ui_;
     Game *game_;
@@ -44,8 +39,8 @@ private:
     Timer *blackTimer_;
     QLabel *topTimerLabel_;
     QLabel *bottomTimerLabel_;
-    QString whiteTimerText_;
-    QString blackTimerText_;
+    QString topTimerText_;
+    QString bottomTimerText_;
 };
 
 #endif // CHESS_H

@@ -32,6 +32,18 @@ void Game::updatePosition()
     }
 }
 
+void Game::completePromotion(Piece piece) {
+    emit setPromotionVisibilty(false);
+
+    Piece fromPiece = pieceAt(savedFrom_);
+    Piece toPiece = pieceAt(savedTo_);
+
+    position_[savedFrom_[0]][savedFrom_[1]] = None;
+    position_[savedTo_[0]][savedTo_[1]] = piece;
+
+    updateGameInfo(savedFrom_, savedTo_, fromPiece, toPiece);
+}
+
 void Game::expiredTime(bool white)
 {
     // TODO Implement variable behavior based on winning color
@@ -40,6 +52,9 @@ void Game::expiredTime(bool white)
 
 void Game::keyPress(int key)
 {
+    if (choosingPromotionPiece_)
+        return;
+
     if (key == Qt::Key_Down) {
         if (shownMoveNumber_ == 0)
            return;
@@ -67,6 +82,13 @@ void Game::mousePress(int row, int col)
     if (shownMoveNumber_ != trueMoveNumber_)
         return;
 
+    if (choosingPromotionPiece_) {
+        choosingPromotionPiece_ = false;
+        emit setPromotionVisibilty(false);
+        clearSelectedSquare();
+        return;
+    }
+
     int adjRow = indexAdjustment(row);
     int adjCol = indexAdjustment(col);
     bool selectable = isSelectable(adjRow, adjCol);
@@ -91,30 +113,25 @@ void Game::mousePress(int row, int col)
         return;
     }
 
+    if (isPromotion(from, to)) {
+        savedFrom_[0] = from[0];
+        savedFrom_[1] = from[1];
+        savedTo_[0] = to[0];
+        savedTo_[1] = to[1];
+
+        choosingPromotionPiece_ = true;
+
+        emit setPromotionColor(whiteTurn_);
+        emit setPromotionVisibilty(true);
+        return;
+    }
+
     Piece fromPiece = pieceAt(from);
     Piece toPiece = pieceAt(to);
 
     makeMove(from, to);
-    updateCastle(from, to);
-    updatePassant(from, to, fromPiece);
-    updateFiftyMoves(fromPiece, toPiece);
-    whiteTurn_ = !whiteTurn_;
 
-    if (isCheckMate()) {
-        resetGame();
-        cout << "Win!\n";
-        return;
-    }
-    if (isDraw()) {
-        resetGame();
-        cout << "Draw!\n";
-        return;
-    }
-
-    shownMoveNumber_++;
-    trueMoveNumber_++;
-    clearSelectedSquare();
-    updatePosition();
+    updateGameInfo(from, to, fromPiece, toPiece);
 }
 
 void Game::resetGame()
@@ -131,13 +148,27 @@ void Game::resetGame()
     whitePassantPawn_ = -1;
     blackPassantPawn_ = -1;
     movesNoProgess_ = 0;
+    choosingPromotionPiece_ = false;
 
     gameHistory_.clear();
     repeatPositions_.clear();
     setStartingPosition();
     gameHistory_.push_back(savePosition());
 
+    emit resetTimer(true, 150000, 0);
+    emit resetTimer(false, 150000, 0);
     updatePosition();
+    updateClocks();
+}
+
+void Game::updateTimerText(const QString &text, bool white)
+{
+    if (white)
+        whiteTimerText_ = text;
+    else
+        blackTimerText_ = text;
+
+    updateClocks();
 }
 
 bool Game::canMove()
@@ -337,6 +368,16 @@ bool Game::isDraw()
     return fiftyMoves() || insufficientMaterial() || isRepeat() || isStalemate();
 }
 
+bool Game::isPromotion(int from[2], int to[2])
+{
+    if (pieceAt(from) == WhitePawn)
+        return to[0] == 0;
+    else if (pieceAt(from) == BlackPawn)
+        return to[0] == 7;
+    else
+        return false;
+}
+
 bool Game::isRepeat()
 {
     Position currentPosition = savePosition();
@@ -425,7 +466,7 @@ void Game::makeMove(int from[2], int to[2])
         return;
     if (makePassantMove(from, to))
         return;
-    if (makePromotionMove(from, to, true))
+    if (isPromotion(from, to))
         return;
     makeStandardMove(from, to);
 }
@@ -441,7 +482,7 @@ bool Game::makePassantMove(int from[2], int to[2])
         removeDirection = 1;
         passantRow = 2;
         passantCol = blackPassantPawn_;
-    } else if (pieceAt(to) == BlackPawn) {
+    } else if (pieceAt(from) == BlackPawn) {
         removeDirection = -1;
         passantRow = 5;
         passantCol = whitePassantPawn_;
@@ -457,29 +498,8 @@ bool Game::makePassantMove(int from[2], int to[2])
     return false;
 }
 
-bool Game::makePromotionMove(int from[2], int to[2], bool autoQueen) {
-    int promotionRow;
-    Piece promotionPiece;
-
-    if (pieceAt(from) == WhitePawn) {
-        promotionRow = 0;
-        promotionPiece = WhiteQueen;
-    } else if (pieceAt(from) == BlackPawn) {
-        promotionRow = 7;
-        promotionPiece = BlackQueen;
-    } else
-        return false;
-
-    if (to[0] == promotionRow) {
-        position_[from[0]][from[1]] = None;
-        position_[to[0]][to[1]] = promotionPiece;
-        return true;
-    }
-
-    return false;
-}
-
-void Game::makeStandardMove(int from[2], int to[2]) {
+void Game::makeStandardMove(int from[2], int to[2])
+{
     Piece movingPiece = pieceAt(from);
     position_[from[0]][from[1]] = None;
     position_[to[0]][to[1]] = movingPiece;
@@ -506,6 +526,16 @@ Piece Game::pieceAt(int row, int col) const
 Piece Game::pieceAt(int pos[2]) const
 {
     return pieceAt(pos[0], pos[1]);
+}
+
+void Game::pressClock()
+{
+    if (trueMoveNumber_ == 2)
+        emit startTimer(whiteTurn_);
+    else if (trueMoveNumber_ > 2) {
+        emit startTimer(whiteTurn_);
+        emit pauseTimer(!whiteTurn_);
+    }
 }
 
 Position Game::savePosition()
@@ -629,12 +659,44 @@ void Game::updateCastle(int from[2], int to[2])
     }
 }
 
+void Game::updateClocks() {
+    emit updateTimerLabels(whiteTimerText_, !whiteTurn_);
+    emit updateTimerLabels(blackTimerText_, whiteTurn_);
+}
+
 void Game::updateFiftyMoves(Piece fromPiece, Piece toPiece)
 {
     if (fromPiece == WhitePawn || fromPiece == BlackPawn || toPiece != None)
         movesNoProgess_ = 0;
     else
         movesNoProgess_++;
+}
+
+void Game::updateGameInfo(int from[2], int to[2], Piece fromPiece, Piece toPiece)
+{
+    updateCastle(from, to);
+    updatePassant(from, to, fromPiece);
+    updateFiftyMoves(fromPiece, toPiece);
+
+    whiteTurn_ = !whiteTurn_;
+    shownMoveNumber_++;
+    trueMoveNumber_++;
+    pressClock();
+
+    if (isCheckMate()) {
+        resetGame();
+        cout << "Win!\n";
+        return;
+    }
+    if (isDraw()) {
+        resetGame();
+        cout << "Draw!\n";
+        return;
+    }
+
+    clearSelectedSquare();
+    updatePosition();
+    updateClocks();
 }
 
 void Game::updatePassant(int from[2], int to[2], Piece fromPiece)
