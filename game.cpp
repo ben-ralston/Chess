@@ -669,9 +669,6 @@ Position Game::savePosition()
 
     current.whiteTurn = whiteTurn_;
 
-//    current.kingsideCastle = true;
-//    current.queensideCastle = true;
-
     Piece king;
     int from[2];
     int to[2];
@@ -698,8 +695,6 @@ Position Game::savePosition()
         current.queensideCastle = validMove(from, to, whiteTurn_);
     }
 
-//    current.enPassantColumn = -1;
-
     int passantCol;
     if (whiteTurn_) {
         passantCol = blackPassantPawn_;
@@ -713,6 +708,7 @@ Position Game::savePosition()
         to[1] = whitePassantPawn_;  // Move to same file where white pawn was
     }
 
+    // TODO Check that pawn is at from
     if (passantCol == -1)
         current.enPassantColumn = passantCol;
     else if (passantCol == 0) {
@@ -875,7 +871,6 @@ bool Game::validKingMove(int from[2], int to[2])
 {
     bool white = pieceAt(from) == WhiteKing;
 
-    // TODO Check for passing through check
     if (white) {
         if (from[0] == 7 && from[1] == 4 && to[0] == 7 && to[1] == 6) {
             if (!whiteKingsideCastle_)
@@ -883,6 +878,9 @@ bool Game::validKingMove(int from[2], int to[2])
             if (inCheck(true))
                 return false;
             if (!emptySpace(7, 5) || !emptySpace(7, 6))
+                return false;
+            int middleSquare[2] = { 7, 5 };
+            if (inCheck(white, from, middleSquare))
                 return false;
 
             return true;
@@ -893,6 +891,9 @@ bool Game::validKingMove(int from[2], int to[2])
             if (inCheck(true))
                 return false;
             if (!emptySpace(7, 1) || !emptySpace(7, 2) || !emptySpace(7, 3))
+                return false;
+            int middleSquare[2] = { 7, 3 };
+            if (inCheck(white, from, middleSquare))
                 return false;
 
             return true;
@@ -905,6 +906,9 @@ bool Game::validKingMove(int from[2], int to[2])
                 return false;
             if (!emptySpace(0, 5) || !emptySpace(0, 6))
                 return false;
+            int middleSquare[2] = { 0, 5 };
+            if (inCheck(white, from, middleSquare))
+                return false;
 
             return true;
         }
@@ -914,6 +918,9 @@ bool Game::validKingMove(int from[2], int to[2])
             if (inCheck(false))
                 return false;
             if (!emptySpace(0, 1) || !emptySpace(0, 2) || !emptySpace(0, 3))
+                return false;
+            int middleSquare[2] = { 0, 3 };
+            if (inCheck(white, from, middleSquare))
                 return false;
 
             return true;
