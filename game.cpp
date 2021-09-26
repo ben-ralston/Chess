@@ -696,29 +696,30 @@ Position Game::savePosition()
     }
 
     int passantCol;
+    Piece pawn;
     if (whiteTurn_) {
+        pawn = WhitePawn;
         passantCol = blackPassantPawn_;
         from[0] = 3;  // White pawns start on 5th rank for en passant
         to[0] = 2;  // Move to 6th rank after en passant
         to[1] = blackPassantPawn_;  // Move to same file where black pawn was
     } else {
+        pawn = BlackPawn;
         passantCol = whitePassantPawn_;
         from[0] = 4;  // Black pawns start on 4th rank for en passant
         to[0] = 5;  // Move to 3rd rank after en passant
         to[1] = whitePassantPawn_;  // Move to same file where white pawn was
     }
 
-    // TODO Check that pawn is at from
     if (passantCol == -1)
         current.enPassantColumn = passantCol;
     else if (passantCol == 0) {
         from[1] = 1;
-        if (validMove(from, to, whiteTurn_))
+        if (validMove(from, to, whiteTurn_) && pieceAt(from) == pawn)
             current.enPassantColumn = passantCol;
         else
             current.enPassantColumn = -1;
-    }
-    else if (passantCol == 7) {
+    } else if (passantCol == 7 && pieceAt(from) == pawn) {
         from[1] = 6;
         if (validMove(from, to, whiteTurn_))
             current.enPassantColumn = passantCol;
@@ -728,11 +729,11 @@ Position Game::savePosition()
         bool legalPassant = false;
 
         from[1] = passantCol + 1;
-        if (validMove(from, to, whiteTurn_))
+        if (validMove(from, to, whiteTurn_) && pieceAt(from) == pawn)
             legalPassant = true;
         else {
             from[1] = passantCol - 1;
-            if (validMove(from, to, whiteTurn_))
+            if (validMove(from, to, whiteTurn_) && pieceAt(from) == pawn)
                 legalPassant = true;
         }
 
