@@ -10,7 +10,7 @@ PromotionSquare::PromotionSquare(QWidget *parent, int row, int col) : Square(par
     lightSquare_ = true;
 
     QGraphicsOpacityEffect *op = new QGraphicsOpacityEffect(this);
-    op->setOpacity(.75);
+    op->setOpacity(.85);
     setGraphicsEffect(op);
     setAutoFillBackground(true);
 
