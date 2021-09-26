@@ -13,7 +13,7 @@
   <property name="windowTitle">
    <string>Chess</string>
   </property>
-  <widget class="QWidget" name="centralwidget">
+  <widget class="QWidget" name="centralWidget">
    <property name="styleSheet">
     <string notr="true">background-color: rgb(100, 102, 102);</string>
    </property>
@@ -203,6 +203,21 @@ color: white;</string>
     </property>
     <property name="flat">
      <bool>false</bool>
+    </property>
+   </widget>
+   <widget class="QTableView" name="table">
+    <property name="geometry">
+     <rect>
+      <x>520</x>
+      <y>20</y>
+      <width>256</width>
+      <height>192</height>
+     </rect>
+    </property>
+    <property name="styleSheet">
+     <string notr="true">background-color: rgb(41, 44, 48);
+font-weight: bold;
+color: white;</string>
     </property>
    </widget>
   </widget>

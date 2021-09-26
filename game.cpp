@@ -41,7 +41,7 @@ void Game::completePromotion(Piece piece) {
     position_[savedFrom_[0]][savedFrom_[1]] = None;
     position_[savedTo_[0]][savedTo_[1]] = piece;
 
-    updateGameInfo(savedFrom_, savedTo_, fromPiece, toPiece);
+    updateGameInfo(savedFrom_, savedTo_, fromPiece, toPiece, piece, QString());
 }
 
 void Game::expiredTime(bool white)
@@ -73,6 +73,7 @@ void Game::keyPress(int key)
         shownMoveNumber_ = trueMoveNumber_;
     }
 
+    emit notationMoveNumber(shownMoveNumber_ - 1);
     clearSelectedSquare();
     updatePosition();
 }
@@ -128,10 +129,11 @@ void Game::mousePress(int row, int col)
 
     Piece fromPiece = pieceAt(from);
     Piece toPiece = pieceAt(to);
+    QString ambiguityString = notationAmbiguity(from, to);
 
     makeMove(from, to);
 
-    updateGameInfo(from, to, fromPiece, toPiece);
+    updateGameInfo(from, to, fromPiece, toPiece, None, ambiguityString);
 }
 
 void Game::resetGame()
@@ -157,8 +159,22 @@ void Game::resetGame()
 
     emit resetTimer(true, 150000, 0);
     emit resetTimer(false, 150000, 0);
+    emit clearNotation();
+    emit notationMoveNumber(-1);
     updatePosition();
     updateClocks();
+}
+
+void Game::updateShownMove(int move)
+{
+    if (choosingPromotionPiece_) {
+        choosingPromotionPiece_ = false;
+        emit setPromotionVisibilty(false);
+    }
+
+    shownMoveNumber_ = move;
+    clearSelectedSquare();
+    updatePosition();
 }
 
 void Game::updateTimerText(const QString &text, bool white)
@@ -169,6 +185,67 @@ void Game::updateTimerText(const QString &text, bool white)
         blackTimerText_ = text;
 
     updateClocks();
+}
+
+void Game::algebraicNotation(int from[2], int to[2], Piece fromPiece, Piece toPiece, Piece promoPiece, QString ambiguityString)
+{
+    bool takes;
+    if (fromPiece == WhitePawn || fromPiece == BlackPawn)
+        takes = from[1] != to[1];
+    else
+        takes = toPiece != None;
+
+    if (fromPiece == WhiteKing || fromPiece == BlackKing) {
+        if (to[1] - from[1] == 2) {
+            emit notateMove("O-O");
+            return;
+        } if (to[1] - from[1] == -2) {
+            emit notateMove("O-O-O");
+            return;
+        }
+    }
+
+    QString move;
+
+    if (fromPiece == WhitePawn || fromPiece == BlackPawn) {
+        if (takes)
+            move = colToFile(from[1]);
+    } else if (fromPiece == WhiteKnight || fromPiece == BlackKnight)
+        move = "N";
+    else if (fromPiece == WhiteBishop || fromPiece == BlackBishop)
+        move = "B";
+    else if (fromPiece == WhiteRook || fromPiece == BlackRook)
+        move = "R";
+    else if (fromPiece == WhiteQueen || fromPiece == BlackQueen)
+        move = "Q";
+    else if (fromPiece == WhiteKing || fromPiece == BlackKing)
+        move = "K";
+
+    move.append(ambiguityString);
+
+    if (takes)
+        move.append("x");
+
+    move.append(colToFile(to[1]));
+    move.append(rowToRank(to[0]));
+
+    if (promoPiece != None) {
+        move.append("=");
+
+        if (promoPiece == WhiteKnight || promoPiece == BlackKnight)
+            move.append("N");
+        else if (promoPiece == WhiteBishop || promoPiece == BlackBishop)
+            move.append("B");
+        else if (promoPiece == WhiteRook || promoPiece == BlackRook)
+            move.append("R");
+        else if (promoPiece == WhiteQueen || promoPiece == BlackQueen)
+            move.append("Q");
+    }
+
+    if (inCheck(whiteTurn_))
+        move.append("+");
+
+    emit notateMove(move);
 }
 
 bool Game::canMove()
@@ -188,6 +265,12 @@ bool Game::canMove()
     }
 
     return false;
+}
+
+char Game::colToFile(int col) const
+{
+    char file = 97 + col;
+    return file;
 }
 
 void Game::clearSelectedSquare()
@@ -505,6 +588,41 @@ void Game::makeStandardMove(int from[2], int to[2])
     position_[to[0]][to[1]] = movingPiece;
 }
 
+QString Game::notationAmbiguity(int from[2], int to[2])
+{
+    Piece movingPiece = pieceAt(from);
+
+    bool ambiguousMove = false;
+    bool sameRow = false;
+    bool sameCol = false;
+
+    int otherPiece[2];
+    for (otherPiece[0] = 0; otherPiece[0] < 8; otherPiece[0]++) {
+        for (otherPiece[1] = 0; otherPiece[1] < 8; otherPiece[1]++) {
+            if (pieceAt(otherPiece) == movingPiece && !equalArrays(from, otherPiece, 2)) {
+                if (validMove(otherPiece, to, whiteTurn_)) {
+                    ambiguousMove = true;
+                    sameRow = from[0] == otherPiece[0] ? true : sameRow;
+                    sameCol = from[1] == otherPiece[1] ? true : sameCol;
+                }
+            }
+        }
+    }
+
+    QString string;
+    if (ambiguousMove) {
+        if (sameRow)
+            string = colToFile(from[1]);
+        if (sameCol)
+            string.append(rowToRank(from[0]));
+
+        if (string.length() == 0)
+            string = colToFile(from[1]);
+    }
+
+    return string;
+}
+
 bool Game::opponentPiece(int r, int c, bool white) const
 {
     if (white)
@@ -536,6 +654,12 @@ void Game::pressClock()
         emit startTimer(whiteTurn_);
         emit pauseTimer(!whiteTurn_);
     }
+}
+
+char Game::rowToRank(int row) const
+{
+    char rank = 56 - row;
+    return rank;
 }
 
 Position Game::savePosition()
@@ -645,18 +769,14 @@ void Game::updateCastle(int from[2], int to[2])
         blackKingsideCastle_ = false;
         blackQueensideCastle_ = false;
     }
-    if ((from[0] == 7 && from[1] == 7) || (to[0] == 7 && to[1] == 7)) {
+    if ((from[0] == 7 && from[1] == 7) || (to[0] == 7 && to[1] == 7))
         whiteKingsideCastle_ = false;
-    }
-    if ((from[0] == 7 && from[1] == 0) || (to[0] == 7 && to[1] == 0)) {
+    if ((from[0] == 7 && from[1] == 0) || (to[0] == 7 && to[1] == 0))
         whiteQueensideCastle_ = false;
-    }
-    if ((from[0] == 0 && from[1] == 7) || (to[0] == 0 && to[1] == 7)) {
+    if ((from[0] == 0 && from[1] == 7) || (to[0] == 0 && to[1] == 7))
         blackKingsideCastle_ = false;
-    }
-    if ((from[0] == 0 && from[1] == 0) || (to[0] == 0 && to[1] == 0)) {
+    if ((from[0] == 0 && from[1] == 0) || (to[0] == 0 && to[1] == 0))
         blackQueensideCastle_ = false;
-    }
 }
 
 void Game::updateClocks() {
@@ -672,16 +792,20 @@ void Game::updateFiftyMoves(Piece fromPiece, Piece toPiece)
         movesNoProgess_++;
 }
 
-void Game::updateGameInfo(int from[2], int to[2], Piece fromPiece, Piece toPiece)
+void Game::updateGameInfo(int from[2], int to[2], Piece fromPiece, Piece toPiece, Piece promoPiece, QString ambiguityString)
 {
     updateCastle(from, to);
     updatePassant(from, to, fromPiece);
     updateFiftyMoves(fromPiece, toPiece);
 
+    // TODO Stop clock earlier
     whiteTurn_ = !whiteTurn_;
     shownMoveNumber_++;
     trueMoveNumber_++;
     pressClock();
+
+    algebraicNotation(from, to, fromPiece, toPiece, promoPiece, ambiguityString);
+    emit notationMoveNumber(shownMoveNumber_ - 1);
 
     if (isCheckMate()) {
         resetGame();

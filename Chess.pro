@@ -13,6 +13,7 @@ SOURCES += \
     game.cpp \
     main.cpp \
     chess.cpp \
+    notation_model.cpp \
     promotion_square.cpp \
     square.cpp \
     timer.cpp
@@ -21,6 +22,7 @@ HEADERS += \
     chess.h \
     chess_layout.h \
     game.h \
+    notation_model.h \
     piece.h \
     position.h \
     promotion_square.h \

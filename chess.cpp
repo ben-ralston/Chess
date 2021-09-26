@@ -1,6 +1,8 @@
 #include "chess.h"
 
 #include <QKeyEvent>
+#include <QHeaderView>
+#include <QWidget>
 
 #include "ui_chess.h"
 #include "game.h"
@@ -10,6 +12,8 @@
 #include "timer.h"
 #include "position.h"
 #include "piece.h"
+
+#include "notation_model.h"
 
 using namespace std;
 
@@ -21,12 +25,13 @@ Chess::Chess(QWidget *parent)
     game_ = new Game(this);
     connect(this, &Chess::keyPress, game_, &Game::keyPress);
 
-    QWidget *centralWidget = this->findChild<QWidget *>("centralwidget");
+//    QWidget *centralWidget = this->findChild<QWidget *>("centralWidget");
+
     QPushButton *newGame = this->findChild<QPushButton *>("newGame");
     topTimerLabel_ = this->findChild<QLabel *>("topTimerLabel");
     bottomTimerLabel_ = this->findChild<QLabel *>("bottomTimerLabel");
 
-    layout_ = new ChessLayout(centralWidget, QMargins(5, 5, 5, 5), 5);
+    layout_ = new ChessLayout(ui_->centralWidget, QMargins(5, 5, 5, 5), 5);
 
     QVBoxLayout *leftLayout = new QVBoxLayout();
     QHBoxLayout *topLayout = new QHBoxLayout();
@@ -40,11 +45,41 @@ Chess::Chess(QWidget *parent)
     layout_->addLayout(topLayout, ChessLayout::North);
     layout_->addLayout(bottomLayout, ChessLayout::South);
 
-    QWidget *east;
-    east = new QWidget(this);
-    east->setStyleSheet("background-color:blue;");
-    east->show();
-    layout_->addWidget(east, ChessLayout::East);
+//    QTableView *ui_->table = new QTableView(this);
+    model_ = new NotationModel(this);
+    connect(game_, &Game::notateMove, model_, &NotationModel::addMove);
+    connect(game_, &Game::clearNotation, model_, &NotationModel::clearMoves);
+    connect(game_, &Game::notationMoveNumber, model_, &NotationModel::setMoveNumber);
+    connect(model_, &NotationModel::updateShownMove, game_, &Game::updateShownMove);
+
+    connect(ui_->table, &QTableView::clicked, model_, &NotationModel::clickedCell);
+    connect(model_, &NotationModel::scrollTable, ui_->table, &QTableView::scrollToBottom);
+
+//    connect(model_, &NotationModel::updateTable, table, &QWidget::repaint);
+//    QWidget *port = table->viewport();
+//    connect(model, &NotationModel::updateTable, port, &QWidget::update);
+//    table->viewpor
+
+    ui_->table->setModel(model_);
+    layout_->addTable(ui_->table, ChessLayout::East);
+    ui_->table->horizontalHeader()->setSectionResizeMode(QHeaderView::Stretch);
+    ui_->table->horizontalHeader()->hide();
+    ui_->table->verticalHeader()->hide();
+
+    ui_->table->setShowGrid(false);
+
+    ui_->table->setEditTriggers(QAbstractItemView::NoEditTriggers);
+    ui_->table->setFocusPolicy(Qt::NoFocus);
+    ui_->table->setSelectionMode(QAbstractItemView::NoSelection);
+
+    ui_->table->show();
+
+
+//    QWidget *east;
+//    east = new QWidget(this);
+//    east->setStyleSheet("background-color:blue;");
+//    east->show();
+//    layout_->addWidget(east, ChessLayout::East);
 
     connect(newGame, &QPushButton::released, this, &Chess::newGame);
 
@@ -52,7 +87,7 @@ Chess::Chess(QWidget *parent)
 
     for (int row = 0; row < 8; row++) {
         for (int col = 0; col < 8; col++) {
-            square = new Square(centralWidget, row, col);
+            square = new Square(ui_->centralWidget, row, col);
             layout_->addWidget(square, ChessLayout::Board, row, col);
 
             connect(game_, &Game::setPiece, square, &Square::setPiece);
@@ -64,7 +99,7 @@ Chess::Chess(QWidget *parent)
     PromotionSquare *promoSquare;
     for (int row = 0; row < 2; row++) {
         for (int col = 0; col < 2; col++) {
-            promoSquare = new PromotionSquare(centralWidget, row, col);
+            promoSquare = new PromotionSquare(ui_->centralWidget, row, col);
             layout_->addWidget(promoSquare, ChessLayout::Promotion, row, col);
 
             connect(game_, &Game::setPromotionColor, promoSquare, &PromotionSquare::setColor);

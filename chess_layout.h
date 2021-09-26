@@ -6,6 +6,7 @@
 #include <QLayout>
 #include <QWidget>
 #include <QRect>
+#include <QTableView>
 
 class ChessLayout : public QLayout
 {
@@ -16,6 +17,7 @@ public:
     ~ChessLayout();
 
     void addLayout(QLayout *layout, Region region);
+    void addTable(QTableView *item, Region region);
     void addWidget(QWidget *widget, Region region, int row = -1, int col = -1);
     void addItem(QLayoutItem *item) override;
     int count() const override;

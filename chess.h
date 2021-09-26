@@ -9,6 +9,7 @@
 #include "chess_layout.h"
 #include "piece.h"
 #include "timer.h"
+#include "notation_model.h"
 
 QT_BEGIN_NAMESPACE
 namespace Ui { class Chess; }
@@ -41,6 +42,7 @@ private:
     QLabel *bottomTimerLabel_;
     QString topTimerText_;
     QString bottomTimerText_;
+    NotationModel *model_;
 };
 
 #endif // CHESS_H

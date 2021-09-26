@@ -26,6 +26,7 @@ public slots:
     void keyPress(int key);
     void mousePress(int row, int col);
     void resetGame();
+    void updateShownMove(int move);
     void updateTimerText(const QString &text, bool white);
 
 signals:
@@ -37,14 +38,19 @@ signals:
     void pauseTimer(bool white);
     void resetTimer(int startingTime, int increment, bool white);
     void updateTimerLabels(const QString &text, bool top);
+    void notateMove(const QString &move);
+    void clearNotation();
+    void notationMoveNumber(int move);
 
 private:
+    void algebraicNotation(int from[2], int to[2], Piece fromPiece, Piece toPiece, Piece promoPiece, QString ambiguityString);
     bool canMove();
+    char colToFile(int col) const;
     void clearSelectedSquare();
     void copyBoard(const Piece * original, Piece *copy);
     bool emptySpace(int row, int col) const;
     bool emptySpace(int pos[2]) const;
-    bool equalArrays(int a[12], int b[12], int len) const;
+    bool equalArrays(int a[], int b[], int len) const;
     bool fiftyMoves() const;
     bool inCheck(bool white);
     bool inCheck(bool white, int from[2], int to[2]);
@@ -60,18 +66,20 @@ private:
     void makeMove(int from[2], int to[2]);
     bool makePassantMove(int from[2], int to[2]);
     void makeStandardMove(int from[2], int to[2]);
+    QString notationAmbiguity(int from[2], int to[2]);
     bool opponentPiece(int row, int col, bool white) const;
     bool opponentPiece(int pos[2], bool white) const;
     Piece pieceAt(int row, int col) const;
     Piece pieceAt(int pos[2]) const;
     void pressClock();
+    char rowToRank(int row) const;
     Position savePosition();
     void setSelectedSquare(int row, int col);
     void setStartingPosition();
     void updateCastle(int from[2], int to[2]);
     void updateClocks();
     void updateFiftyMoves(Piece fromPiece, Piece toPiece);
-    void updateGameInfo(int from[2], int to[2], Piece fromPiece, Piece toPiece);
+    void updateGameInfo(int from[2], int to[2], Piece fromPiece, Piece toPiece, Piece promoPiece, QString ambiguityString);
     void updatePassant(int from[2], int to[2], Piece fromPiece);
     bool validBishopMove(int from[2], int to[2]) const;
     bool validKingMove(int from[2], int to[2]);
