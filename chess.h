@@ -24,7 +24,6 @@ public:
     ~Chess();
 
 private slots:
-    void newGame();
     void updateTimerLabels(const QString &text, bool top);
 
 signals:
@@ -38,8 +37,6 @@ private:
     ChessLayout *layout_;
     Timer *whiteTimer_;
     Timer *blackTimer_;
-    QLabel *topTimerLabel_;
-    QLabel *bottomTimerLabel_;
     QString topTimerText_;
     QString bottomTimerText_;
     NotationModel *model_;
