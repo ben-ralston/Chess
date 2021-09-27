@@ -30,12 +30,13 @@ public slots:
     void updateTimerText(const QString &text, bool white);
 
 signals:
+    void gameEnded(const QString &color, const QString &victoryType);
     void highlightSquare(int pos[2]);
     void setPiece(int row, int col, Piece piece);
     void setPromotionColor(bool white);
     void setPromotionVisibilty(bool visible);
     void startTimer(bool white);
-    void pauseTimer(bool white);
+    void pauseTimer(bool white, bool noIncrement = false);
     void resetTimer(int startingTime, int increment, bool white);
     void updateTimerLabels(const QString &text, bool top);
     void notateMove(const QString &move);
@@ -43,7 +44,8 @@ signals:
     void notationMoveNumber(int move);
 
 private:
-    void algebraicNotation(int from[2], int to[2], Piece fromPiece, Piece toPiece, Piece promoPiece, QString ambiguityString);
+    void algebraicNotation(int from[2], int to[2], Piece fromPiece, Piece toPiece,
+                           Piece promoPiece, QString ambiguityString, bool checkMate);
     bool canMove();
     char colToFile(int col) const;
     void clearSelectedSquare();
@@ -57,7 +59,7 @@ private:
     int indexAdjustment(int rowOrColIndex) const;
     bool insufficientMaterial() const;
     bool isCheckMate();
-    bool isDraw();
+    QString isDraw();
     bool isPromotion(int from[2], int to[2]);
     bool isRepeat();
     bool isSelectable(int row, int col) const;
@@ -79,7 +81,8 @@ private:
     void updateCastle(int from[2], int to[2]);
     void updateClocks();
     void updateFiftyMoves(Piece fromPiece, Piece toPiece);
-    void updateGameInfo(int from[2], int to[2], Piece fromPiece, Piece toPiece, Piece promoPiece, QString ambiguityString);
+    void updateGameInfo(int from[2], int to[2], Piece fromPiece, Piece toPiece,
+                        Piece promoPiece, QString ambiguityString);
     void updatePassant(int from[2], int to[2], Piece fromPiece);
     bool validBishopMove(int from[2], int to[2]) const;
     bool validKingMove(int from[2], int to[2]);
@@ -104,6 +107,7 @@ private:
     std::vector<Position> gameHistory_;
     std::vector<Position> repeatPositions_;
     bool whiteTurn_;
+    bool gameOver_;
     int selected_[2];
     int shownMoveNumber_;
     int trueMoveNumber_;

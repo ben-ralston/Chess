@@ -1,10 +1,9 @@
-#ifndef NOTATIONITEM_H
-#define NOTATIONITEM_H
+#ifndef NOTATION_MODEL_H
+#define NOTATION_MODEL_H
 
 #include <QObject>
 #include <QAbstractTableModel>
 #include <QString>
-
 
 class NotationModel : public QAbstractTableModel
 {
@@ -12,9 +11,9 @@ class NotationModel : public QAbstractTableModel
 
 public:
     NotationModel(QObject *parent = 0);
-    int rowCount(const QModelIndex &parent = QModelIndex()) const Q_DECL_OVERRIDE;
-    int columnCount(const QModelIndex &parent = QModelIndex()) const Q_DECL_OVERRIDE;
-    QVariant data(const QModelIndex &index, int role = Qt::DisplayRole) const Q_DECL_OVERRIDE;
+    int rowCount(const QModelIndex &parent = QModelIndex()) const override;
+    int columnCount(const QModelIndex &parent = QModelIndex()) const override;
+    QVariant data(const QModelIndex &index, int role = Qt::DisplayRole) const override;
 
 public slots:
     void addMove(const QString &move);
@@ -31,4 +30,4 @@ private:
     int moveNumber_;
 };
 
-#endif // NOTATIONITEM_H
+#endif // NOTATION_MODEL_H

@@ -15,7 +15,7 @@ public:
 
 public slots:
     void start(bool white);
-    void pause(bool white);
+    void pause(bool white, bool noIncrement);
     void reset(bool white, int startingTime = 300000, int increment = 0);
 
 private slots:

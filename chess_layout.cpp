@@ -23,6 +23,11 @@ void ChessLayout::addLayout(QLayout *layout, Region region)
     add(layout, region);
 }
 
+void ChessLayout::addFrame(QFrame *frame, Region region)
+{
+    add(new QWidgetItem(frame), region);
+}
+
 void ChessLayout::addTable(QTableView *item, Region region)
 {
     add(new QWidgetItem(item), region);
@@ -71,28 +76,38 @@ void ChessLayout::setGeometry(const QRect &rect)
     int horizontalSpacing = 2 * spacing() + margins.left() + margins.right();
 
     int centerLength;
-    if (rect.width() - 2 * sideMinWidth - horizontalSpacing > rect.height() - 2 * topHeight - verticalSpacing)
-        centerLength = rect.height() - 2 * topHeight - verticalSpacing;
+    if (rect.width() - 2 * sideMinWidth_ - horizontalSpacing > rect.height() - 2 * topHeight_ - verticalSpacing)
+        centerLength = rect.height() - 2 * topHeight_ - verticalSpacing;
     else
-        centerLength = rect.width() - 2 * sideMinWidth - horizontalSpacing;
+        centerLength = rect.width() - 2 * sideMinWidth_ - horizontalSpacing;
 
     centerLength -= centerLength % 8;
     int squareLength = centerLength / 8;
 
-    float twiceVerticalOffset = static_cast<float>(rect.height() - centerLength - verticalSpacing - 2 * topHeight);
+    float twiceVerticalOffset = static_cast<float>(rect.height() - centerLength - verticalSpacing - 2 * topHeight_);
     int verticalOffset = static_cast<int>(round(twiceVerticalOffset / 2.));
 
     float twiceSideWidth = static_cast<float>(rect.width() - centerLength - horizontalSpacing);
     int sideWidth = static_cast<int>(round(twiceSideWidth / 2.));
 
     int boardLeft = margins.left() + sideWidth + spacing();
-    int boardTop = margins.top() + topHeight + spacing() + verticalOffset;
+    int boardTop = margins.top() + topHeight_ + spacing() + verticalOffset;
 
     float promotionSquareScale = 1.25;
     int promotionSquareLength = static_cast<int>(round(squareLength * promotionSquareScale));
-
     int promotionSquareLeft = boardLeft + centerLength / 2 - promotionSquareLength;
     int promotionSquareTop = boardTop + centerLength / 2 - promotionSquareLength;
+
+//    float endScreenXScale = 5;
+//    float endScreenYScale = 3;
+//    int endScreenXLength = static_cast<int>(round(squareLength * endScreenXScale));
+//    int endScreenYLength = static_cast<int>(round(squareLength * endScreenYScale));
+
+    float XToYRatio = 1.5;
+    int endScreenXLength = 200;
+    int endScreenYLength = static_cast<int>(round(endScreenXLength / XToYRatio));
+    int endScreenLeft = boardLeft + centerLength / 2 - endScreenXLength / 2;
+    int endScreenTop = boardTop + centerLength / 2 - endScreenYLength / 2;
 
     QLayout::setGeometry(rect);
 
@@ -106,23 +121,26 @@ void ChessLayout::setGeometry(const QRect &rect)
                                     sideWidth, rect.height() - margins.top() - margins.bottom()));
         else if (region == North)
             item->setGeometry(QRect(rect.x() + margins.left() + sideWidth + spacing(), rect.y() + margins.top(),
-                                     centerLength, topHeight));
+                                     centerLength, topHeight_));
         else if (region == South)
             item->setGeometry(QRect(rect.x() + margins.left() + sideWidth + spacing(),
-                                    rect.y() + margins.top() + topHeight + centerLength + 2 * spacing() + 2 * verticalOffset,
-                                    centerLength, topHeight));
+                                    rect.y() + margins.top() + topHeight_ + centerLength + 2 * spacing() + 2 * verticalOffset,
+                                    centerLength, topHeight_));
         else if (region == East)
             item->setGeometry(QRect(rect.x() + margins.left() + sideWidth + centerLength + 2 * spacing(),
                                     rect.y() + margins.top(),
                                     sideWidth, rect.height() - margins.top() - margins.bottom()));
         else if (region == Board)
             item->setGeometry(QRect(margins.left() + sideWidth + spacing() + squareLength * wrapper->col,
-                                   margins.top() + topHeight + spacing() + verticalOffset + squareLength * wrapper->row,
+                                   margins.top() + topHeight_ + spacing() + verticalOffset + squareLength * wrapper->row,
                                    squareLength, squareLength));
-        else
+        else if (region == Promotion)
             item->setGeometry(QRect(promotionSquareLeft + promotionSquareLength * wrapper->col,
                                     promotionSquareTop + promotionSquareLength * wrapper->row,
                                     promotionSquareLength, promotionSquareLength));
+        else if (region == EndScreen)
+            item->setGeometry(QRect(endScreenLeft, endScreenTop,
+                                    endScreenXLength, endScreenYLength));
     }
 }
 
@@ -154,11 +172,11 @@ QSize ChessLayout::calculateSize(SizeType sizeType) const
         int squareMinLength = 40;
 
         totalSize.rheight() += 2 * spacing() + margins.top() + margins.bottom();
-        totalSize.rheight() += 2 * topHeight;
+        totalSize.rheight() += 2 * topHeight_;
         totalSize.rheight() += 8 * squareMinLength;
 
         totalSize.rwidth() += 2 * spacing() + margins.left() + margins.right();
-        totalSize.rwidth() += 2 * sideMinWidth;
+        totalSize.rwidth() += 2 * sideMinWidth_;
         totalSize.rwidth() += 8 * squareMinLength;
     } else {
         totalSize.rheight() = 0;

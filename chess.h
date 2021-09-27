@@ -25,6 +25,7 @@ public:
 
 private slots:
     void updateTimerLabels(const QString &text, bool top);
+    void gameOver(const QString &color, const QString &victoryType);
 
 signals:
     void keyPress(int key);

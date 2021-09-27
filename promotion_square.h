@@ -1,5 +1,5 @@
-#ifndef PROMOTIONSQUARE_H
-#define PROMOTIONSQUARE_H
+#ifndef PROMOTION_SQUARE_H
+#define PROMOTION_SQUARE_H
 
 #include <QObject>
 
@@ -25,4 +25,4 @@ private:
     static const Piece blackPieces_[4];
 };
 
-#endif // PROMOTIONSQUARE_H
+#endif // PROMOTION_SQUARE_H

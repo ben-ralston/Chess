@@ -60,7 +60,7 @@ void Timer::start(bool white)
         altTimer_->start(remainingTime_ % 100);
 }
 
-void Timer::pause(bool white)
+void Timer::pause(bool white, bool noIncrement)
 {
     if (white_ != white)
         return;
@@ -70,6 +70,11 @@ void Timer::pause(bool white)
         timer = altTimer_;
     else
         timer = mainTimer_;
+
+    if (noIncrement) {
+        timer->stop();
+        return;
+    }
 
     int timeLeft = timer->remainingTime();
     timer->stop();

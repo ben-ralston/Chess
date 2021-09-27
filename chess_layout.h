@@ -11,12 +11,13 @@
 class ChessLayout : public QLayout
 {
 public:
-    enum Region { West, North, South, East, Board, Promotion };
+    enum Region { West, North, South, East, Board, Promotion, EndScreen };
 
     explicit ChessLayout(QWidget *parent, const QMargins &margins = QMargins(), int spacing = -1);
     ~ChessLayout();
 
     void addLayout(QLayout *layout, Region region);
+    void addFrame(QFrame *frame, Region region);
     void addTable(QTableView *item, Region region);
     void addWidget(QWidget *widget, Region region, int row = -1, int col = -1);
     void addItem(QLayoutItem *item) override;
@@ -49,8 +50,8 @@ private:
     void add(QLayoutItem *item, Region region, int row = -1, int col = -1);
     QSize calculateSize(SizeType sizeType) const;
 
-    const int topHeight = 50;
-    const int sideMinWidth = 100;
+    const int topHeight_ = 50;
+    const int sideMinWidth_ = 170;
     QList<ItemWrapper *> items_;
 };
 

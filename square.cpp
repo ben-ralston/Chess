@@ -14,18 +14,16 @@ QColor Square::highlightColor_(192, 204, 60);
 
 Square::Square(QWidget *parent, int row, int col)
     : QWidget(parent),
+      lightSquare_((row + col) % 2 == 0),
       row_(row),
       col_(col),
-      lightSquare_((row + col) % 2 == 0),
       piece_(None),
       highlighted_(false)
 {
-
 }
 
 Square::~Square()
 {
-
 }
 
 QImage *Square::loadImages()
@@ -60,6 +58,7 @@ void Square::setHighlight(int pos[2])
 
 void Square::mousePressEvent(QMouseEvent *event)
 {
+    Q_UNUSED(event);
     // TODO Handle left and right mouse clicks separately
     emit clicked(row_, col_);
 }

@@ -1,6 +1,6 @@
-#include <QGraphicsOpacityEffect>
-
 #include "promotion_square.h"
+
+#include <QGraphicsOpacityEffect>
 
 const Piece PromotionSquare::whitePieces_[4] = { WhiteQueen, WhiteRook, WhiteBishop, WhiteKnight };
 const Piece PromotionSquare::blackPieces_[4] = { BlackQueen, BlackRook, BlackBishop, BlackKnight };
@@ -37,6 +37,7 @@ void PromotionSquare::setVisibility(bool visible)
 
 void PromotionSquare::mousePressEvent(QMouseEvent *event)
 {
+    Q_UNUSED(event);
     // TODO Handle left and right mouse clicks separately
     emit promotionPiece(piece_);
 }

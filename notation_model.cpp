@@ -1,6 +1,7 @@
 #include "notation_model.h"
 
 #include <iostream>
+
 #include <QColor>
 
 NotationModel::NotationModel(QObject *parent) : QAbstractTableModel(parent)
@@ -36,14 +37,12 @@ QVariant NotationModel::data(const QModelIndex &index, int role) const
         if (col == 0)
             return QString("%1:").arg(row + 1);
 
-//        int moveIndex = 2 * row + col - 1;
         if (moveIndex > moves_.length() - 1)
             return QVariant();
 
         return moves_[moveIndex];
     } if (role == Qt::BackgroundRole) {
         if (moveIndex == moveNumber_ && col != 0) {
-//            return QVariant();
             return QColor(82, 89, 97);
         } else {
             return QColor(41, 44, 48);

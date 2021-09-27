@@ -14,8 +14,8 @@ Game::Game(QObject *parent)
     resetGame();
 }
 
-Game::~Game() {
-
+Game::~Game()
+{
 }
 
 void Game::updatePosition()
@@ -32,7 +32,8 @@ void Game::updatePosition()
     }
 }
 
-void Game::completePromotion(Piece piece) {
+void Game::completePromotion(Piece piece)
+{
     emit setPromotionVisibilty(false);
 
     Piece fromPiece = pieceAt(savedFrom_);
@@ -47,7 +48,14 @@ void Game::completePromotion(Piece piece) {
 void Game::expiredTime(bool white)
 {
     // TODO Implement variable behavior based on winning color
-    resetGame();
+    QString color = white ? "Black Wins!" : "White Wins!";
+    QString type = "on Time";
+    emit gameEnded(color, type);
+
+    emit pauseTimer(whiteTurn_, true);
+    clearSelectedSquare();
+    updatePosition();
+    gameOver_ = true;
 }
 
 void Game::keyPress(int key)
@@ -80,6 +88,8 @@ void Game::keyPress(int key)
 
 void Game::mousePress(int row, int col)
 {
+    if (gameOver_)
+        return;
     if (shownMoveNumber_ != trueMoveNumber_)
         return;
 
@@ -138,6 +148,7 @@ void Game::mousePress(int row, int col)
 
 void Game::resetGame()
 {
+    gameOver_ = false;
     whiteTurn_ = true;
     clearSelectedSquare();
     shownMoveNumber_ = 0;
@@ -187,7 +198,8 @@ void Game::updateTimerText(const QString &text, bool white)
     updateClocks();
 }
 
-void Game::algebraicNotation(int from[2], int to[2], Piece fromPiece, Piece toPiece, Piece promoPiece, QString ambiguityString)
+void Game::algebraicNotation(int from[2], int to[2], Piece fromPiece, Piece toPiece,
+                             Piece promoPiece, QString ambiguityString, bool checkMate)
 {
     bool takes;
     if (fromPiece == WhitePawn || fromPiece == BlackPawn)
@@ -242,7 +254,9 @@ void Game::algebraicNotation(int from[2], int to[2], Piece fromPiece, Piece toPi
             move.append("Q");
     }
 
-    if (inCheck(whiteTurn_))
+    if (checkMate)
+        move.append("#");
+    else if (inCheck(whiteTurn_))
         move.append("+");
 
     emit notateMove(move);
@@ -446,9 +460,18 @@ bool Game::isCheckMate()
     return !canMove();
 }
 
-bool Game::isDraw()
+QString Game::isDraw()
 {
-    return fiftyMoves() || insufficientMaterial() || isRepeat() || isStalemate();
+    // TODO Move gameHistory_ appending out of isRepeat
+    if (isRepeat())
+        return "by Threefold Repetition";
+    if (fiftyMoves())
+        return "by Fifty-Move Rule";
+    if (insufficientMaterial())
+        return "by Insufficient Material";
+    if (isStalemate())
+        return "by Stalemate";
+    return "";
 }
 
 bool Game::isPromotion(int from[2], int to[2])
@@ -504,7 +527,7 @@ bool Game::isStalemate()
 bool Game::makeCastleMove(int from[2], int to[2])
 {
     // TODO Find better method for comparisons
-    // TODO Maybe save pertinent values as constants
+    // TODO Maybe save pertinent values as variables
 
     if (pieceAt(from) == WhiteKing) {
         if (from[0] == 7 && from[1] == 4 && to[0] == 7 && to[1] == 6) {
@@ -795,29 +818,42 @@ void Game::updateGameInfo(int from[2], int to[2], Piece fromPiece, Piece toPiece
     updatePassant(from, to, fromPiece);
     updateFiftyMoves(fromPiece, toPiece);
 
-    // TODO Stop clock earlier
     whiteTurn_ = !whiteTurn_;
     shownMoveNumber_++;
     trueMoveNumber_++;
-    pressClock();
 
-    algebraicNotation(from, to, fromPiece, toPiece, promoPiece, ambiguityString);
+    bool checkMate = isCheckMate();
+
+    algebraicNotation(from, to, fromPiece, toPiece, promoPiece, ambiguityString, checkMate);
     emit notationMoveNumber(shownMoveNumber_ - 1);
 
-    if (isCheckMate()) {
-        resetGame();
-        cout << "Win!\n";
-        return;
-    }
-    if (isDraw()) {
-        resetGame();
-        cout << "Draw!\n";
-        return;
-    }
+    QString drawType = isDraw();
+    if (drawType != QString()) {
+        QString color = "It's a Draw!";
+        emit gameEnded(color, drawType);
 
-    clearSelectedSquare();
-    updatePosition();
-    updateClocks();
+        whiteTurn_ = !whiteTurn_;
+        emit pauseTimer(whiteTurn_, true);
+        clearSelectedSquare();
+        updatePosition();
+        gameOver_ = true;
+    } else if (checkMate) {
+        QString color = !whiteTurn_ ? "Black Wins!" : "White Wins!";
+        QString type = "by Checkmate";
+        emit gameEnded(color, type);
+
+        whiteTurn_ = !whiteTurn_;
+        emit pauseTimer(whiteTurn_, true);
+        clearSelectedSquare();
+        updatePosition();
+        gameOver_ = true;
+    } else {
+        // TODO Stop clock earlier
+        pressClock();
+        clearSelectedSquare();
+        updatePosition();
+        updateClocks();
+    }
 }
 
 void Game::updatePassant(int from[2], int to[2], Piece fromPiece)

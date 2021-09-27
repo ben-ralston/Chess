@@ -20,10 +20,14 @@ Chess::Chess(QWidget *parent)
     : QMainWindow(parent), ui_(new Ui::Chess)
 {
     ui_->setupUi(this);
+    connect(ui_->newGame, &QPushButton::released, ui_->winFrame, &QFrame::hide);
+    connect(ui_->winNewGame, &QPushButton::released, ui_->winFrame, &QFrame::hide);
 
     game_ = new Game(this);
     connect(game_, &Game::updateTimerLabels, this, &Chess::updateTimerLabels);
+    connect(game_, &Game::gameEnded, this, &Chess::gameOver);
     connect(ui_->newGame, &QPushButton::released, game_, &Game::resetGame);
+    connect(ui_->winNewGame, &QPushButton::released, game_, &Game::resetGame);
     connect(this, &Chess::keyPress, game_, &Game::keyPress);
 
     QVBoxLayout *leftLayout = new QVBoxLayout();
@@ -57,6 +61,7 @@ Chess::Chess(QWidget *parent)
     layout_->addLayout(topLayout, ChessLayout::North);
     layout_->addLayout(bottomLayout, ChessLayout::South);
     layout_->addTable(ui_->table, ChessLayout::East);
+    layout_->addFrame(ui_->winFrame, ChessLayout::EndScreen);
 
     Square *square;
     for (int row = 0; row < 8; row++) {
@@ -81,6 +86,9 @@ Chess::Chess(QWidget *parent)
             connect(game_, &Game::setPromotionVisibilty, promoSquare, &PromotionSquare::setVisibility);
         }
     }
+
+    ui_->winFrame->raise();
+    ui_->winFrame->hide();
 
     whiteTimer_ = new Timer(this, true, 30000, 2000);
     blackTimer_ = new Timer(this, false, 30000, 5000);
@@ -121,6 +129,13 @@ void Chess::updateTimerLabels(const QString &text, bool top)
         ui_->topTimerLabel->setText(text);
     else
         ui_->bottomTimerLabel->setText(text);
+}
+
+void Chess::gameOver(const QString &color, const QString &victoryType)
+{
+    ui_->winColorLabel->setText(color);
+    ui_->winTypeLabel->setText(victoryType);
+    ui_->winFrame->show();
 }
 
 void Chess::keyPressEvent(QKeyEvent *event)
