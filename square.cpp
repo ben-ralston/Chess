@@ -12,13 +12,13 @@ QColor Square::lightColor_(238, 238, 210);
 QColor Square::darkColor_(118, 150, 86);
 QColor Square::highlightColor_(192, 204, 60);
 
-Square::Square(QWidget *parent, int row, int col)
-    : QWidget(parent),
-      lightSquare_((row + col) % 2 == 0),
-      row_(row),
-      col_(col),
-      piece_(None),
-      highlighted_(false)
+Square::Square(QWidget *parent, int row, int col) :
+    QWidget(parent),
+    lightSquare_((row + col) % 2 == 0),
+    row_(row),
+    col_(col),
+    piece_(None),
+    highlighted_(false)
 {
 }
 

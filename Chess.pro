@@ -15,6 +15,7 @@ SOURCES += \
     chess.cpp \
     notation_model.cpp \
     promotion_square.cpp \
+    settings.cpp \
     square.cpp \
     timer.cpp
 
@@ -26,11 +27,13 @@ HEADERS += \
     piece.h \
     position.h \
     promotion_square.h \
+    settings.h \
     square.h \
     timer.h
 
 FORMS += \
-    chess.ui
+    chess.ui \
+    settings.ui
 
 # Default rules for deployment.
 qnx: target.path = /tmp/$${TARGET}/bin

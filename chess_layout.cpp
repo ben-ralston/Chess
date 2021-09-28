@@ -2,8 +2,8 @@
 
 #include <QList>
 
-ChessLayout::ChessLayout(QWidget *parent, const QMargins &margins, int spacing)
-    : QLayout(parent)
+ChessLayout::ChessLayout(QWidget *parent, const QMargins &margins, int spacing) :
+    QLayout(parent)
 {
     setContentsMargins(margins);
     setSpacing(spacing);

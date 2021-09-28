@@ -8,8 +8,9 @@
 
 using namespace std;
 
-Game::Game(QObject *parent)
-    : QObject(parent), selected_{-1, -1}
+Game::Game(QObject *parent) :
+    QObject(parent),
+    selected_{-1, -1}
 {
     resetGame();
 }

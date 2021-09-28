@@ -12,7 +12,9 @@
 #include "notation_model.h"
 
 QT_BEGIN_NAMESPACE
-namespace Ui { class Chess; }
+namespace Ui {
+    class Chess;
+}
 QT_END_NAMESPACE
 
 class Chess : public QMainWindow
@@ -26,6 +28,7 @@ public:
 private slots:
     void updateTimerLabels(const QString &text, bool top);
     void gameOver(const QString &color, const QString &victoryType);
+    void openSettings();
 
 signals:
     void keyPress(int key);

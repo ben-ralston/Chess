@@ -1,10 +1,10 @@
 #include "timer.h"
 
-Timer::Timer(QObject *parent, bool white, int startingTime, int increment)
-    : QObject(parent),
-      white_(white),
-      remainingTime_(startingTime),
-      increment_(increment)
+Timer::Timer(QObject *parent, bool white, int startingTime, int increment) :
+    QObject(parent),
+    white_(white),
+    remainingTime_(startingTime),
+    increment_(increment)
 {
     mainTimer_ = new QTimer();
     mainTimer_->setTimerType(Qt::PreciseTimer);

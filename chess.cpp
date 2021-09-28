@@ -13,15 +13,18 @@
 #include "position.h"
 #include "piece.h"
 #include "notation_model.h"
+#include "settings.h"
 
 using namespace std;
 
-Chess::Chess(QWidget *parent)
-    : QMainWindow(parent), ui_(new Ui::Chess)
+Chess::Chess(QWidget *parent) :
+    QMainWindow(parent),
+    ui_(new Ui::Chess)
 {
     ui_->setupUi(this);
     connect(ui_->newGame, &QPushButton::released, ui_->winFrame, &QFrame::hide);
     connect(ui_->winNewGame, &QPushButton::released, ui_->winFrame, &QFrame::hide);
+    connect(ui_->settingsButton, &QPushButton::released, this, &Chess::openSettings);
 
     game_ = new Game(this);
     connect(game_, &Game::updateTimerLabels, this, &Chess::updateTimerLabels);
@@ -35,6 +38,7 @@ Chess::Chess(QWidget *parent)
     QHBoxLayout *bottomLayout = new QHBoxLayout();
 
     leftLayout->addWidget(ui_->newGame, 0, Qt::AlignTop);
+    leftLayout->addWidget(ui_->settingsButton, 0, Qt::AlignBottom);
     topLayout->addWidget(ui_->topTimerLabel, 0, Qt::AlignLeft);
     bottomLayout->addWidget(ui_->bottomTimerLabel, 0, Qt::AlignRight);
 
@@ -136,6 +140,12 @@ void Chess::gameOver(const QString &color, const QString &victoryType)
     ui_->winColorLabel->setText(color);
     ui_->winTypeLabel->setText(victoryType);
     ui_->winFrame->show();
+}
+
+void Chess::openSettings()
+{
+    Settings *settings = new Settings();
+    settings->show();
 }
 
 void Chess::keyPressEvent(QKeyEvent *event)
