@@ -12,6 +12,7 @@ class Square : public QWidget
 public:
     explicit Square(QWidget *parent, int row, int col);
     ~Square();
+    static void setColors(QColor lightColor, QColor darkColor);
 
 public slots:
     void setPiece(int row, int col, Piece piece);

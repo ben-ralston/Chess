@@ -19,7 +19,17 @@ using namespace std;
 
 Chess::Chess(QWidget *parent) :
     QMainWindow(parent),
-    ui_(new Ui::Chess)
+    ui_(new Ui::Chess),
+    twoPlayer_(true),
+    flipBoard_(true),
+    startWhiteVsComputer_(true),
+    whiteTime_(150000),
+    blackTime_(150000),
+    whiteIncrement_(5000),
+    blackIncrement_(5000),
+    primaryCustomColor_(QColorConstants::White),
+    secondaryCustomColor_(QColorConstants::DarkGray),
+    selectedColorRow_(0)
 {
     ui_->setupUi(this);
     connect(ui_->newGame, &QPushButton::released, ui_->winFrame, &QFrame::hide);
@@ -91,11 +101,14 @@ Chess::Chess(QWidget *parent) :
         }
     }
 
+    Square::setColors(settingsPresetColors_[0], settingsPresetColors_[1]);
+
+
     ui_->winFrame->raise();
     ui_->winFrame->hide();
 
-    whiteTimer_ = new Timer(this, true, 30000, 2000);
-    blackTimer_ = new Timer(this, false, 30000, 5000);
+    whiteTimer_ = new Timer(this, true, whiteTime_, whiteIncrement_);
+    blackTimer_ = new Timer(this, false, blackTime_, blackIncrement_);
     connect(game_, &Game::startTimer, whiteTimer_, &Timer::start);
     connect(game_, &Game::pauseTimer, whiteTimer_, &Timer::pause);
     connect(game_, &Game::resetTimer, whiteTimer_, &Timer::reset);
@@ -107,6 +120,8 @@ Chess::Chess(QWidget *parent) :
     connect(game_, &Game::resetTimer, blackTimer_, &Timer::reset);
     connect(blackTimer_, &Timer::currentTimeText, game_, &Game::updateTimerText);
     connect(blackTimer_, &Timer::expiredTime, game_, &Game::expiredTime);
+
+    game_->setTimeControl(150000, 150000, 5000, 5000);
 
     whiteTimer_->updateText();
     blackTimer_->updateText();
@@ -144,8 +159,39 @@ void Chess::gameOver(const QString &color, const QString &victoryType)
 
 void Chess::openSettings()
 {
-    Settings *settings = new Settings();
+    releaseKeyboard();
+//    QColor presets[6];
+    Settings *settings = new Settings(nullptr, true, true, false,
+                                      whiteTime_, blackTime_, whiteIncrement_, blackIncrement_,
+                                      settingsPresetColors_, primaryCustomColor_, secondaryCustomColor_,
+                                      selectedColorRow_);
+    connect(settings, &Settings::closed, this, &Chess::settingsClosed);
     settings->show();
+}
+
+void Chess::settingsClosed(bool applied, bool humanVHuman, bool flipBoard, bool startWhite,
+                           int whiteTime, int blackTime, int whiteIncrement, int blackIncrement,
+                           QColor primary, QColor secondary, QColor primaryCustom,
+                           QColor secondaryCustom, int selectedRow)
+{
+    if (applied) {
+        twoPlayer_ = humanVHuman;
+        flipBoard_ = flipBoard;
+        startWhiteVsComputer_ = startWhite;
+        whiteTime_ = whiteTime;
+        blackTime_ = blackTime;
+        whiteIncrement_ = whiteIncrement;
+        blackIncrement_ = blackIncrement;
+        primaryCustomColor_ = primaryCustom;
+        secondaryCustomColor_ = secondaryCustom;
+        selectedColorRow_ = selectedRow;
+
+        game_->setTimeControl(whiteTime, blackTime, whiteIncrement, blackIncrement);
+        Square::setColors(primary, secondary);
+        game_->resetGame();
+    }
+
+    grabKeyboard();
 }
 
 void Chess::keyPressEvent(QKeyEvent *event)

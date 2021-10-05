@@ -33,6 +33,14 @@ void Game::updatePosition()
     }
 }
 
+void Game::setTimeControl(int whiteTime, int blackTime, int whiteIncrement, int blackIncrement)
+{
+    whiteTime_ = whiteTime;
+    blackTime_ = blackTime;
+    whiteIncrement_ = whiteIncrement;
+    blackIncrement_ = blackIncrement;
+}
+
 void Game::completePromotion(Piece piece)
 {
     emit setPromotionVisibilty(false);
@@ -169,8 +177,8 @@ void Game::resetGame()
     setStartingPosition();
     gameHistory_.push_back(savePosition());
 
-    emit resetTimer(true, 150000, 0);
-    emit resetTimer(false, 150000, 0);
+    emit resetTimer(true, whiteTime_, whiteIncrement_);
+    emit resetTimer(false, blackTime_, blackIncrement_);
     emit clearNotation();
     emit notationMoveNumber(-1);
     updatePosition();

@@ -8,8 +8,10 @@
 using namespace std;
 
 const QImage * const Square::images_ = Square::loadImages();
-QColor Square::lightColor_(238, 238, 210);
-QColor Square::darkColor_(118, 150, 86);
+//QColor Square::lightColor_(238, 238, 210);
+//QColor Square::darkColor_(118, 150, 86);
+QColor Square::lightColor_;
+QColor Square::darkColor_;
 QColor Square::highlightColor_(192, 204, 60);
 
 Square::Square(QWidget *parent, int row, int col) :
@@ -54,6 +56,12 @@ void Square::setHighlight(int pos[2])
         highlighted_ = !highlighted_;
         update();
     }
+}
+
+void Square::setColors(QColor lightColor, QColor darkColor)
+{
+    lightColor_ = lightColor;
+    darkColor_ = darkColor;
 }
 
 void Square::mousePressEvent(QMouseEvent *event)

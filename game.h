@@ -19,6 +19,7 @@ public:
     explicit Game(QObject *parent = nullptr);
     ~Game();
     void updatePosition();
+    void setTimeControl(int whiteTime, int blackTime, int whiteIncrement, int blackIncrement);
 
 public slots:
     void completePromotion(Piece piece);
@@ -37,7 +38,7 @@ signals:
     void setPromotionVisibilty(bool visible);
     void startTimer(bool white);
     void pauseTimer(bool white, bool noIncrement = false);
-    void resetTimer(int startingTime, int increment, bool white);
+    void resetTimer(bool white, int startingTime, int increment);
     void updateTimerLabels(const QString &text, bool top);
     void notateMove(const QString &move);
     void clearNotation();
@@ -123,6 +124,11 @@ private:
     bool choosingPromotionPiece_;
     int savedFrom_[2];
     int savedTo_[2];
+
+    int whiteTime_;
+    int blackTime_;
+    int whiteIncrement_;
+    int blackIncrement_;
 };
 
 #endif // GAME_H
