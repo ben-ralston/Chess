@@ -14,7 +14,19 @@ BoardColorSquare::BoardColorSquare(QWidget *parent, int row, bool left, QColor c
 {
     setSizePolicy(QSizePolicy(QSizePolicy::Fixed, QSizePolicy::Fixed));
     setMinimumSize(QSize(40, 40));
-    setStyleSheet("background-color: blue;");
+}
+
+const QColor &BoardColorSquare::color() const
+{
+    return color_;
+}
+
+void BoardColorSquare::setColor(const QColor &newColor)
+{
+    color_ = newColor;
+    if (selected_)
+        emit selectedColor(color_, left_);
+    update();
 }
 
 QSize BoardColorSquare::sizeHint() const
@@ -79,17 +91,4 @@ void BoardColorSquare::paintEvent(QPaintEvent *event)
         painter.fillRect(bottomRect, QColorConstants::Black);
         painter.fillRect(sideRect, QColorConstants::Black);
     }
-}
-
-const QColor &BoardColorSquare::color() const
-{
-    return color_;
-}
-
-void BoardColorSquare::setColor(const QColor &newColor)
-{
-    color_ = newColor;
-    if (selected_)
-        emit selectedColor(color_, left_);
-    update();
 }

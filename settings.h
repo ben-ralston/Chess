@@ -19,44 +19,37 @@ class Settings : public QWidget
 public:
     explicit Settings(QWidget *parent, bool twoPlayer, bool flipBoard, bool startWhiteVsComputer,
                       int whiteTime, int blackTime, int whiteIncrement, int blackIncrement,
-                      const QColor presetColors[6], QColor primaryCustomColor, QColor secondaryCustomColor,
-                      int selectedColorRow);
+                      const QColor (&presetColors)[6], const QColor &primaryCustomColor,
+                      const QColor &secondaryCustomColor, int selectedColorRow);
     ~Settings();
 
-    bool applied() const;
-
 private slots:
+    void apply();
     void humanVHumanClicked();
     void humanVComputerClicked();
     void startWhiteClicked();
     void startBlackClicked();
     void colorSquareClicked(int row);
-    void setColor(QColor color, bool primary);
+    void setColor(const QColor &color, bool primary);
     void choosePrimaryColor();
     void chooseSecondaryColor();
-    void apply();
 
 signals:
     void setSelectedColor(int row);
     void closed(bool applied, bool humanVHuman = false, bool flipBoard = false, bool startWhite = false,
                 int whiteTime = 0, int blackTime = 0, int whiteIncrement = 0, int blackIncrement = 0,
-                QColor primaryBoard = QColor(), QColor secondaryBoard = QColor(), QColor primaryCustom = QColor(),
-                QColor secondaryCustom = QColor(), int selectedRow = 0);
+                const QColor &primaryBoard = QColor(), const QColor &secondaryBoard = QColor(),
+                const QColor &primaryCustom = QColor(), const QColor &secondaryCustom = QColor(), int selectedRow = 0);
 
 private:
-    const QColor startingColors_[8] = { QColorConstants::Yellow, QColorConstants::DarkGreen,
-                                        QColorConstants::LightGray, QColorConstants::DarkBlue,
-                                        QColorConstants::LightGray, QColorConstants::Red,
-                                        QColorConstants::LightGray, QColorConstants::Red,
-                                      };
     void mousePressEvent(QMouseEvent *event) override;
     void closeEvent(QCloseEvent *event) override;
 
     Ui::Settings *ui_;
-    QColor primaryColor_;
-    QColor secondaryColor_;
-    BoardColorSquare *customPrimaryColor_;
-    BoardColorSquare *customSecondaryColor_;
+    BoardColorSquare *primaryCustomColorSquare_;
+    BoardColorSquare *secondaryCustomColorSquare_;
+    QColor primarySelectedColor_;
+    QColor secondarySelectedColor_;
     int selectedColorRow_;
     bool applied_;
 };

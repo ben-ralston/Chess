@@ -231,7 +231,7 @@ void Game::updateTimerText(const QString &text, bool white)
 }
 
 void Game::algebraicNotation(int from[2], int to[2], Piece fromPiece, Piece toPiece,
-                             Piece promoPiece, QString ambiguityString, bool checkMate)
+                             Piece promoPiece, const QString &ambiguityString, bool checkMate)
 {
     bool takes;
     if (fromPiece == WhitePawn || fromPiece == BlackPawn)
@@ -849,7 +849,8 @@ void Game::updateFiftyMoves(Piece fromPiece, Piece toPiece)
         movesNoProgess_++;
 }
 
-void Game::updateGameInfo(int from[2], int to[2], Piece fromPiece, Piece toPiece, Piece promoPiece, QString ambiguityString)
+void Game::updateGameInfo(int from[2], int to[2], Piece fromPiece, Piece toPiece,
+                          Piece promoPiece, const QString &ambiguityString)
 {
     updateCastle(from, to);
     updatePassant(from, to, fromPiece);

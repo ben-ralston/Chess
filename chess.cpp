@@ -158,8 +158,9 @@ void Chess::gameOver(const QString &color, const QString &victoryType)
 
 void Chess::openSettings()
 {
+    // TODO Make settings hidden/shown instead of new object
+
     releaseKeyboard();
-//    QColor presets[6];
     Settings *settings = new Settings(nullptr, twoPlayer_, flipBoard_, startWhiteVsComputer_,
                                       whiteTime_, blackTime_, whiteIncrement_, blackIncrement_,
                                       settingsPresetColors_, primaryCustomColor_, secondaryCustomColor_,
@@ -168,21 +169,21 @@ void Chess::openSettings()
     settings->show();
 }
 
-void Chess::settingsClosed(bool applied, bool humanVHuman, bool flipBoard, bool startWhite,
+void Chess::settingsClosed(bool applied, bool twoPlayer, bool flipBoard, bool startWhite,
                            int whiteTime, int blackTime, int whiteIncrement, int blackIncrement,
-                           QColor primary, QColor secondary, QColor primaryCustom,
-                           QColor secondaryCustom, int selectedRow)
+                           const QColor &primaryColor, const QColor &secondaryColor,
+                           const QColor &primaryCustomColor, const QColor &secondaryCustomColor, int selectedRow)
 {
     if (applied) {
         bool reset = false;
 
-        if (twoPlayer_ != humanVHuman)
+        if (twoPlayer_ != twoPlayer)
             reset = true;
-        twoPlayer_ = humanVHuman;
+        twoPlayer_ = twoPlayer;
 
         flipBoard_ = flipBoard;
 
-        if (!humanVHuman && startWhiteVsComputer_ != startWhite)
+        if (!twoPlayer && startWhiteVsComputer_ != startWhite)
             reset = true;
         startWhiteVsComputer_ = startWhite;
 
@@ -202,11 +203,11 @@ void Chess::settingsClosed(bool applied, bool humanVHuman, bool flipBoard, bool 
             reset = true;
         blackIncrement_ = blackIncrement;
 
-        primaryCustomColor_ = primaryCustom;
-        secondaryCustomColor_ = secondaryCustom;
+        primaryCustomColor_ = primaryCustomColor;
+        secondaryCustomColor_ = secondaryCustomColor;
         selectedColorRow_ = selectedRow;
 
-        Square::setColors(primary, secondary);
+        Square::setColors(primaryColor, secondaryColor);
         game_->setTimeControl(whiteTime, blackTime, whiteIncrement, blackIncrement);
         game_->setFlipBoard(flipBoard);
         if (reset)

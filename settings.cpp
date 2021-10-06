@@ -10,7 +10,7 @@
 
 Settings::Settings(QWidget *parent, bool twoPlayer, bool flipBoard, bool startWhiteVsComputer,
                    int whiteTime, int blackTime, int whiteIncrement, int blackIncrement,
-                   const QColor presetColors[6], QColor primaryCustomColor, QColor secondaryCustomColor,
+                   const QColor (&presetColors)[6], const QColor &primaryCustomColor, const QColor &secondaryCustomColor,
                    int selectedColorRow) :
     QWidget(parent),
     ui_(new Ui::Settings),
@@ -24,6 +24,9 @@ Settings::Settings(QWidget *parent, bool twoPlayer, bool flipBoard, bool startWh
     connect(ui_->HvCButton, &QRadioButton::clicked, this, &Settings::humanVComputerClicked);
     connect(ui_->startWhiteButton, &QRadioButton::clicked, this, &Settings::startWhiteClicked);
     connect(ui_->startBlackButton, &QRadioButton::clicked, this, &Settings::startBlackClicked);
+
+    connect(ui_->choosePrimaryButton, &QPushButton::clicked, this, &Settings::choosePrimaryColor);
+    connect(ui_->chooseSecondaryButton, &QPushButton::clicked, this, &Settings::chooseSecondaryColor);
     connect(ui_->applyButton, &QPushButton::clicked, this, &Settings::apply);
     connect(ui_->cancelButton, &QPushButton::clicked, this, &Settings::close);
 
@@ -45,11 +48,8 @@ Settings::Settings(QWidget *parent, bool twoPlayer, bool flipBoard, bool startWh
     connect(ui_->whiteIncrement, &QLineEdit::editingFinished, ui_->whiteIncrement, &QLineEdit::clearFocus);
     connect(ui_->blackIncrement, &QLineEdit::editingFinished, ui_->blackIncrement, &QLineEdit::clearFocus);
 
-    connect(ui_->choosePrimaryButton, &QPushButton::clicked, this, &Settings::choosePrimaryColor);
-    connect(ui_->chooseSecondaryButton, &QPushButton::clicked, this, &Settings::chooseSecondaryColor);
-
     QHBoxLayout *boxes[4] = { ui_->boardColorHBox1, ui_->boardColorHBox2,
-                              ui_->boardColorHBox3, ui_->boardColorHBox4};
+                              ui_->boardColorHBox3, ui_->boardColorHBox4 };
     BoardColorSquare *colorSquare;
     for (int i = 0; i < 4; i++) {
         int insertIndex = i == 3 ? 0 : 1;
@@ -57,7 +57,7 @@ Settings::Settings(QWidget *parent, bool twoPlayer, bool flipBoard, bool startWh
         if (i == 3) {
             colorSquare = new BoardColorSquare(ui_->boardColorFrame,
                                                i, true, primaryCustomColor);
-            customPrimaryColor_ = colorSquare;
+            primaryCustomColorSquare_ = colorSquare;
         } else
             colorSquare = new BoardColorSquare(ui_->boardColorFrame,
                                                i, true, presetColors[2 * i]);
@@ -69,7 +69,7 @@ Settings::Settings(QWidget *parent, bool twoPlayer, bool flipBoard, bool startWh
         if (i == 3) {
             colorSquare = new BoardColorSquare(ui_->boardColorFrame,
                                                i, false, secondaryCustomColor);
-            customSecondaryColor_ = colorSquare;
+            secondaryCustomColorSquare_ = colorSquare;
         } else
             colorSquare = new BoardColorSquare(ui_->boardColorFrame,
                                                i, false, presetColors[2 * i + 1]);
@@ -114,6 +114,14 @@ Settings::Settings(QWidget *parent, bool twoPlayer, bool flipBoard, bool startWh
 Settings::~Settings()
 {
     delete ui_;
+    delete primaryCustomColorSquare_;
+    delete secondaryCustomColorSquare_;
+}
+
+void Settings::apply()
+{
+    applied_ = true;
+    close();
 }
 
 void Settings::humanVHumanClicked()
@@ -154,34 +162,28 @@ void Settings::colorSquareClicked(int row)
     emit setSelectedColor(row);
 }
 
-void Settings::setColor(QColor color, bool primary)
+void Settings::setColor(const QColor &color, bool primary)
 {
     if (primary)
-        primaryColor_ = color;
+        primarySelectedColor_ = color;
     else
-        secondaryColor_ = color;
+        secondarySelectedColor_ = color;
 }
 
 void Settings::choosePrimaryColor()
 {
-    QColor newColor = QColorDialog::getColor(customPrimaryColor_->color());
+    QColor newColor = QColorDialog::getColor(primaryCustomColorSquare_->color());
     if (newColor.isValid()) {
-        customPrimaryColor_->setColor(newColor);
+        primaryCustomColorSquare_->setColor(newColor);
     }
 }
 
 void Settings::chooseSecondaryColor()
 {
-    QColor newColor = QColorDialog::getColor(customSecondaryColor_->color());
+    QColor newColor = QColorDialog::getColor(secondaryCustomColorSquare_->color());
     if (newColor.isValid()) {
-        customSecondaryColor_->setColor(newColor);
+        secondaryCustomColorSquare_->setColor(newColor);
     }
-}
-
-void Settings::apply()
-{
-    applied_ = true;
-    close();
 }
 
 void Settings::mousePressEvent(QMouseEvent *event)
@@ -230,16 +232,11 @@ void Settings::closeEvent(QCloseEvent *event)
                              ui_->blackIncrement->text().toInt() * 1000 : 0;
 
         emit closed(true, humanVHuman, flipBoard, startWhite, whiteTime, blackTime,
-                    whiteIncrement, blackIncrement, primaryColor_, secondaryColor_,
-                    customPrimaryColor_->color(), customSecondaryColor_->color(),
+                    whiteIncrement, blackIncrement, primarySelectedColor_, secondarySelectedColor_,
+                    primaryCustomColorSquare_->color(), secondaryCustomColorSquare_->color(),
                     selectedColorRow_);
     } else
         emit closed(false);
 
     QWidget::closeEvent(event);
-}
-
-bool Settings::applied() const
-{
-    return applied_;
 }

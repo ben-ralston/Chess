@@ -48,11 +48,11 @@ signals:
 
 private:
     void algebraicNotation(int from[2], int to[2], Piece fromPiece, Piece toPiece,
-                           Piece promoPiece, QString ambiguityString, bool checkMate);
+                           Piece promoPiece, const QString &ambiguityString, bool checkMate);
     bool canMove();
     char colToFile(int col) const;
     void clearSelectedSquare();
-    void copyBoard(const Piece * original, Piece *copy);
+    void copyBoard(const Piece *original, Piece *copy);
     bool emptySpace(int row, int col) const;
     bool emptySpace(int pos[2]) const;
     bool equalArrays(int a[], int b[], int len) const;
@@ -85,7 +85,7 @@ private:
     void updateCastle(int from[2], int to[2]);
     void updateFiftyMoves(Piece fromPiece, Piece toPiece);
     void updateGameInfo(int from[2], int to[2], Piece fromPiece, Piece toPiece,
-                        Piece promoPiece, QString ambiguityString);
+                        Piece promoPiece, const QString &ambiguityString);
     void updatePassant(int from[2], int to[2], Piece fromPiece);
     bool validBishopMove(int from[2], int to[2]) const;
     bool validKingMove(int from[2], int to[2]);
@@ -131,7 +131,6 @@ private:
     int blackTime_;
     int whiteIncrement_;
     int blackIncrement_;
-
     bool flipBoard_;
 };
 

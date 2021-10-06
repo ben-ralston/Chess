@@ -9,10 +9,9 @@ class BoardColorSquare : public QWidget
 
 public:
     explicit BoardColorSquare(QWidget *parent, int row, bool left, QColor color);
-    QSize sizeHint() const override;
-
-    void setColor(const QColor &newColor);
     const QColor &color() const;
+    void setColor(const QColor &newColor);
+    QSize sizeHint() const override;
 
 public slots:
     void setSelected(int row);
