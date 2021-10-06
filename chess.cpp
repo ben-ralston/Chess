@@ -103,7 +103,6 @@ Chess::Chess(QWidget *parent) :
 
     Square::setColors(settingsPresetColors_[0], settingsPresetColors_[1]);
 
-
     ui_->winFrame->raise();
     ui_->winFrame->hide();
 
@@ -161,7 +160,7 @@ void Chess::openSettings()
 {
     releaseKeyboard();
 //    QColor presets[6];
-    Settings *settings = new Settings(nullptr, true, true, false,
+    Settings *settings = new Settings(nullptr, twoPlayer_, flipBoard_, startWhiteVsComputer_,
                                       whiteTime_, blackTime_, whiteIncrement_, blackIncrement_,
                                       settingsPresetColors_, primaryCustomColor_, secondaryCustomColor_,
                                       selectedColorRow_);
@@ -175,20 +174,46 @@ void Chess::settingsClosed(bool applied, bool humanVHuman, bool flipBoard, bool 
                            QColor secondaryCustom, int selectedRow)
 {
     if (applied) {
+        bool reset = false;
+
+        if (twoPlayer_ != humanVHuman)
+            reset = true;
         twoPlayer_ = humanVHuman;
+
         flipBoard_ = flipBoard;
+
+        if (!humanVHuman && startWhiteVsComputer_ != startWhite)
+            reset = true;
         startWhiteVsComputer_ = startWhite;
+
+        if (whiteTime_ != whiteTime)
+            reset = true;
         whiteTime_ = whiteTime;
-        blackTime_ = blackTime;
+
+        if (whiteIncrement_ != whiteIncrement)
+            reset = true;
         whiteIncrement_ = whiteIncrement;
+
+        if (blackTime_ != blackTime)
+            reset = true;
+        blackTime_ = blackTime;
+
+        if (blackIncrement_ != blackIncrement)
+            reset = true;
         blackIncrement_ = blackIncrement;
+
         primaryCustomColor_ = primaryCustom;
         secondaryCustomColor_ = secondaryCustom;
         selectedColorRow_ = selectedRow;
 
-        game_->setTimeControl(whiteTime, blackTime, whiteIncrement, blackIncrement);
         Square::setColors(primary, secondary);
-        game_->resetGame();
+        game_->setTimeControl(whiteTime, blackTime, whiteIncrement, blackIncrement);
+        game_->setFlipBoard(flipBoard);
+        if (reset)
+            game_->resetGame();
+
+        game_->updatePosition();
+        game_->updateClocks();
     }
 
     grabKeyboard();

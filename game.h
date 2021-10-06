@@ -19,7 +19,9 @@ public:
     explicit Game(QObject *parent = nullptr);
     ~Game();
     void updatePosition();
+    void updateClocks();
     void setTimeControl(int whiteTime, int blackTime, int whiteIncrement, int blackIncrement);
+    void setFlipBoard(bool newFlipBoard);
 
 public slots:
     void completePromotion(Piece piece);
@@ -75,12 +77,12 @@ private:
     Piece pieceAt(int row, int col) const;
     Piece pieceAt(int pos[2]) const;
     void pressClock();
+    void rotateSelectedSquare();
     char rowToRank(int row) const;
     Position savePosition();
     void setSelectedSquare(int row, int col);
     void setStartingPosition();
     void updateCastle(int from[2], int to[2]);
-    void updateClocks();
     void updateFiftyMoves(Piece fromPiece, Piece toPiece);
     void updateGameInfo(int from[2], int to[2], Piece fromPiece, Piece toPiece,
                         Piece promoPiece, QString ambiguityString);
@@ -129,6 +131,8 @@ private:
     int blackTime_;
     int whiteIncrement_;
     int blackIncrement_;
+
+    bool flipBoard_;
 };
 
 #endif // GAME_H

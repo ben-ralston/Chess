@@ -14,9 +14,11 @@ Settings::Settings(QWidget *parent, bool twoPlayer, bool flipBoard, bool startWh
                    int selectedColorRow) :
     QWidget(parent),
     ui_(new Ui::Settings),
-    selectedColorRow_(-1),
+    selectedColorRow_(selectedColorRow),
     applied_(false)
 {
+    // TODO Set fixed size for settings window
+
     ui_->setupUi(this);
     connect(ui_->HvHButton, &QRadioButton::clicked, this, &Settings::humanVHumanClicked);
     connect(ui_->HvCButton, &QRadioButton::clicked, this, &Settings::humanVComputerClicked);
@@ -51,7 +53,6 @@ Settings::Settings(QWidget *parent, bool twoPlayer, bool flipBoard, bool startWh
     BoardColorSquare *colorSquare;
     for (int i = 0; i < 4; i++) {
         int insertIndex = i == 3 ? 0 : 1;
-//        int insertIndex = i == 4 ? 0 : 1;
 
         if (i == 3) {
             colorSquare = new BoardColorSquare(ui_->boardColorFrame,
@@ -79,7 +80,6 @@ Settings::Settings(QWidget *parent, bool twoPlayer, bool flipBoard, bool startWh
     }
 
     emit setSelectedColor(selectedColorRow);
-    selectedColorRow_ = selectedColorRow;
 
     if (twoPlayer) {
         ui_->HvHButton->click();
@@ -118,7 +118,6 @@ Settings::~Settings()
 
 void Settings::humanVHumanClicked()
 {
-//    ui_->HvCButton->setChecked(false);
     ui_->startWhiteButton->setChecked(false);
     ui_->startWhiteButton->setEnabled(false);
 
@@ -130,7 +129,6 @@ void Settings::humanVHumanClicked()
 
 void Settings::humanVComputerClicked()
 {
-//    ui_->HvHButton->setChecked(false);
     ui_->startWhiteButton->setEnabled(true);
     ui_->startBlackButton->setEnabled(true);
 
@@ -185,11 +183,6 @@ void Settings::apply()
     applied_ = true;
     close();
 }
-
-//void Settings::cancel()
-//{
-//    close();
-//}
 
 void Settings::mousePressEvent(QMouseEvent *event)
 {
@@ -250,4 +243,3 @@ bool Settings::applied() const
 {
     return applied_;
 }
-

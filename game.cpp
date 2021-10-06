@@ -10,7 +10,8 @@ using namespace std;
 
 Game::Game(QObject *parent) :
     QObject(parent),
-    selected_{-1, -1}
+    selected_{-1, -1},
+    flipBoard_(true)
 {
     resetGame();
 }
@@ -41,6 +42,24 @@ void Game::setTimeControl(int whiteTime, int blackTime, int whiteIncrement, int 
     blackIncrement_ = blackIncrement;
 }
 
+void Game::setFlipBoard(bool newFlipBoard)
+{
+    flipBoard_ = newFlipBoard;
+    if (!whiteTurn_)
+        rotateSelectedSquare();
+//    clearSelectedSquare();
+}
+
+void Game::updateClocks() {
+    if (flipBoard_) {
+        emit updateTimerLabels(whiteTimerText_, !whiteTurn_);
+        emit updateTimerLabels(blackTimerText_, whiteTurn_);
+    } else {
+        emit updateTimerLabels(whiteTimerText_, false);
+        emit updateTimerLabels(blackTimerText_, true);
+    }
+}
+
 void Game::completePromotion(Piece piece)
 {
     emit setPromotionVisibilty(false);
@@ -50,6 +69,8 @@ void Game::completePromotion(Piece piece)
 
     position_[savedFrom_[0]][savedFrom_[1]] = None;
     position_[savedTo_[0]][savedTo_[1]] = piece;
+
+    choosingPromotionPiece_ = false;
 
     updateGameInfo(savedFrom_, savedTo_, fromPiece, toPiece, piece, QString());
 }
@@ -181,6 +202,8 @@ void Game::resetGame()
     emit resetTimer(false, blackTime_, blackIncrement_);
     emit clearNotation();
     emit notationMoveNumber(-1);
+    emit setPromotionVisibilty(false);
+
     updatePosition();
     updateClocks();
 }
@@ -387,7 +410,10 @@ bool Game::inCheck(bool white, int from[2], int to[2])
 
 int Game::indexAdjustment(int rowOrColIndex) const
 {
-    return whiteTurn_ ? rowOrColIndex : 7 - rowOrColIndex;
+    if (flipBoard_)
+        return whiteTurn_ ? rowOrColIndex : 7 - rowOrColIndex;
+    else
+        return rowOrColIndex;
 }
 
 bool Game::insufficientMaterial() const
@@ -688,6 +714,13 @@ void Game::pressClock()
     }
 }
 
+void Game::rotateSelectedSquare()
+{
+    if (selected_[0] == -1)
+        return;
+    setSelectedSquare(7 - selected_[0], 7 - selected_[1]);
+}
+
 char Game::rowToRank(int row) const
 {
     char rank = 56 - row;
@@ -806,11 +839,6 @@ void Game::updateCastle(int from[2], int to[2])
         blackKingsideCastle_ = false;
     if ((from[0] == 0 && from[1] == 0) || (to[0] == 0 && to[1] == 0))
         blackQueensideCastle_ = false;
-}
-
-void Game::updateClocks() {
-    emit updateTimerLabels(whiteTimerText_, !whiteTurn_);
-    emit updateTimerLabels(blackTimerText_, whiteTurn_);
 }
 
 void Game::updateFiftyMoves(Piece fromPiece, Piece toPiece)

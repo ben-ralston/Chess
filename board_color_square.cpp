@@ -45,24 +45,39 @@ void BoardColorSquare::paintEvent(QPaintEvent *event)
     QPainter painter(this);
     painter.fillRect(event->rect(), color_);
 
+    int x = event->rect().left();
+    int y = event->rect().top();
+    int width = event->rect().width();
+    int height = event->rect().height();
+
+    QRect topRect;
+    QRect bottomRect;
+    QRect sideRect;
     if (selected_){
-        int x = event->rect().left();
-        int y = event->rect().top();
-        int width = event->rect().width();
-        int height = event->rect().height();
+        int marginWidth = 4;
+        topRect = QRect(x, y, width, marginWidth);
+        bottomRect = QRect(x, y + height - marginWidth, width, marginWidth);
 
-        QRect topRect = QRect(x, y, width, 3);
-        QRect bottomRect = QRect(x, y + height - 3, width, 3);
-
-        QRect sideRect;
         if (left_)
-            sideRect = QRect(x, y, 3, height);
+            sideRect = QRect(x, y, marginWidth, height);
         else
-            sideRect = QRect(x + width - 3, y , 3, height);
+            sideRect = QRect(x + width - marginWidth, y , marginWidth, height);
 
-        painter.fillRect(topRect, QColorConstants::White);
-        painter.fillRect(bottomRect, QColorConstants::White);
-        painter.fillRect(sideRect, QColorConstants::White);
+        painter.fillRect(topRect, QColor(60, 60, 60));
+        painter.fillRect(bottomRect, QColor(60, 60, 60));
+        painter.fillRect(sideRect, QColor(60, 60, 60));
+    } else {
+        topRect = QRect(x, y, width, 1);
+        bottomRect = QRect(x, y + height - 1, width, 1);
+
+        if (left_)
+            sideRect = QRect(x, y, 1, height);
+        else
+            sideRect = QRect(x + width - 1, y , 1, height);
+
+        painter.fillRect(topRect, QColorConstants::Black);
+        painter.fillRect(bottomRect, QColorConstants::Black);
+        painter.fillRect(sideRect, QColorConstants::Black);
     }
 }
 
