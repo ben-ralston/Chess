@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <ui version="4.0">
  <class>Settings</class>
- <widget class="QWidget" name="Settings">
+ <widget class="QDialog" name="Settings">
   <property name="windowModality">
    <enum>Qt::ApplicationModal</enum>
   </property>
@@ -12,7 +12,7 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>600</width>
+    <width>676</width>
     <height>400</height>
    </rect>
   </property>
