@@ -1,5 +1,5 @@
 #include "settings_dialog.h"
-#include "ui_settings.h"
+#include "ui_settings_dialog.h"
 
 #include <QApplication>
 #include <QIntValidator>
@@ -106,6 +106,8 @@ SettingsDialog::SettingsDialog(QWidget *parent, const Settings &settings) :
     ui_->blackIncrement->setText(QString::number(adjustedBlackIncrement));
 
     settings_ = settings;
+
+    setFixedSize(minimumSizeHint());
 }
 
 SettingsDialog::~SettingsDialog()

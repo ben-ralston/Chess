@@ -3,7 +3,6 @@
 #include <QSizePolicy>
 #include <QPainter>
 #include <QPaintEvent>
-//#include <QColorConstants>
 
 BoardColorSquare::BoardColorSquare(QWidget *parent, int row, bool left, QColor color) :
     QWidget(parent),
@@ -13,7 +12,7 @@ BoardColorSquare::BoardColorSquare(QWidget *parent, int row, bool left, QColor c
     color_(color)
 {
     setSizePolicy(QSizePolicy(QSizePolicy::Fixed, QSizePolicy::Fixed));
-    setMinimumSize(QSize(40, 40));
+    setMinimumSize(QSize(45, 45));
 }
 
 const QColor &BoardColorSquare::color() const
