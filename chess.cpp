@@ -23,32 +23,30 @@ Chess::Chess(QWidget *parent) :
     ui_(new Ui::Chess)
 {
     ui_->setupUi(this);
-    connect(ui_->newGame, &QPushButton::released, ui_->winFrame, &QFrame::hide);
-    connect(ui_->winNewGame, &QPushButton::released, ui_->winFrame, &QFrame::hide);
-    connect(ui_->settingsButton, &QPushButton::released, this, &Chess::openSettings);
+    connect(ui_->newGame, &QPushButton::clicked, ui_->winFrame, &QFrame::hide);
+    connect(ui_->winNewGame, &QPushButton::clicked, ui_->winFrame, &QFrame::hide);
+    connect(ui_->settingsButton, &QPushButton::clicked, this, &Chess::openSettings);
 
-    game_ = new Game(this);
-    connect(game_, &Game::updateTimerLabels, this, &Chess::updateTimerLabels);
+    Settings settings = initialSettings();
+    settingsDialog_ = new SettingsDialog(this, settings);
+    connect(settingsDialog_, &SettingsDialog::finished, this, &Chess::updateSettings);
+
+    game_ = new Game(this, settings.whiteTime, settings.blackTime, settings.whiteIncrement, settings.blackIncrement);
     connect(game_, &Game::gameEnded, this, &Chess::gameOver);
-    connect(ui_->newGame, &QPushButton::released, game_, &Game::resetGame);
-    connect(ui_->winNewGame, &QPushButton::released, game_, &Game::resetGame);
+    connect(game_, &Game::updateTimerLabels, this, &Chess::updateTimerLabels);
+    connect(ui_->newGame, &QPushButton::clicked, game_, &Game::resetGame);
+    connect(ui_->winNewGame, &QPushButton::clicked, game_, &Game::resetGame);
     connect(this, &Chess::keyPress, game_, &Game::keyPress);
 
-    QVBoxLayout *leftLayout = new QVBoxLayout();
-    QHBoxLayout *topLayout = new QHBoxLayout();
-    QHBoxLayout *bottomLayout = new QHBoxLayout();
-
-    leftLayout->addWidget(ui_->newGame, 0, Qt::AlignTop);
-    leftLayout->addWidget(ui_->settingsButton, 0, Qt::AlignBottom);
-    topLayout->addWidget(ui_->topTimerLabel, 0, Qt::AlignLeft);
-    bottomLayout->addWidget(ui_->bottomTimerLabel, 0, Qt::AlignRight);
+    game_->setTimeControl(settings.whiteTime, settings.blackTime,
+                          settings.whiteIncrement, settings.blackIncrement);
 
     model_ = new NotationModel(this);
+    connect(model_, &NotationModel::updateShownMove, game_, &Game::updateShownMove);
+    connect(model_, &NotationModel::scrollTable, ui_->table, &QTableView::scrollToBottom);
     connect(game_, &Game::notateMove, model_, &NotationModel::addMove);
     connect(game_, &Game::clearNotation, model_, &NotationModel::clearMoves);
     connect(game_, &Game::notationMoveNumber, model_, &NotationModel::setMoveNumber);
-    connect(model_, &NotationModel::updateShownMove, game_, &Game::updateShownMove);
-    connect(model_, &NotationModel::scrollTable, ui_->table, &QTableView::scrollToBottom);
     connect(ui_->table, &QTableView::clicked, model_, &NotationModel::clickedCell);
 
     ui_->table->setModel(model_);
@@ -61,12 +59,24 @@ Chess::Chess(QWidget *parent) :
     ui_->table->setSelectionMode(QAbstractItemView::NoSelection);
     ui_->table->show();
 
+    QVBoxLayout *leftLayout = new QVBoxLayout();
+    leftLayout->addWidget(ui_->newGame, 0, Qt::AlignTop);
+    leftLayout->addWidget(ui_->settingsButton, 0, Qt::AlignBottom);
+
+    QHBoxLayout *topLayout = new QHBoxLayout();
+    topLayout->addWidget(ui_->topTimerLabel, 0, Qt::AlignLeft);
+
+    QHBoxLayout *bottomLayout = new QHBoxLayout();
+    bottomLayout->addWidget(ui_->bottomTimerLabel, 0, Qt::AlignRight);
+
     layout_ = new ChessLayout(ui_->centralWidget, QMargins(5, 5, 5, 5), 5);
     layout_->addLayout(leftLayout, ChessLayout::West);
     layout_->addLayout(topLayout, ChessLayout::North);
     layout_->addLayout(bottomLayout, ChessLayout::South);
-    layout_->addTable(ui_->table, ChessLayout::East);
-    layout_->addFrame(ui_->winFrame, ChessLayout::EndScreen);
+    layout_->addWidget(ui_->table, ChessLayout::East);
+    layout_->addWidget(ui_->winFrame, ChessLayout::EndScreen);
+
+    Square::setColors(Settings::presetColors[0], Settings::presetColors[1]);
 
     Square *square;
     for (int row = 0; row < 8; row++) {
@@ -92,30 +102,12 @@ Chess::Chess(QWidget *parent) :
         }
     }
 
-    Settings settings = Settings();
-
-    Square::setColors(settings.presetColors[0], settings.presetColors[1]);
-
-    settings.twoPlayer = true;
-    settings.flipBoard = true;
-    settings.startWhiteVsComputer = true;
-    settings.whiteTime = 150000;
-    settings.blackTime = 150000;
-    settings.whiteIncrement = 5000;
-    settings.blackIncrement = 5000;
-    settings.selectedColorRow = 0;
-    settings.primaryCustomColor = QColorConstants::White;
-    settings.secondaryCustomColor = QColorConstants::DarkGray;
-    settings.resetGame = false;
-
-    settingsDialog_ = new SettingsDialog(this, settings);
-    connect(settingsDialog_, &SettingsDialog::finished, this, &Chess::updateSettings);
-
     ui_->winFrame->raise();
     ui_->winFrame->hide();
 
-    whiteTimer_ = new Timer(this, true, settings.whiteTime, settings.whiteIncrement);
-    blackTimer_ = new Timer(this, false, settings.blackTime, settings.blackIncrement);
+    whiteTimer_ = new Timer(this, true);
+    blackTimer_ = new Timer(this, false);
+
     connect(game_, &Game::startTimer, whiteTimer_, &Timer::start);
     connect(game_, &Game::pauseTimer, whiteTimer_, &Timer::pause);
     connect(game_, &Game::resetTimer, whiteTimer_, &Timer::reset);
@@ -128,17 +120,10 @@ Chess::Chess(QWidget *parent) :
     connect(blackTimer_, &Timer::currentTimeText, game_, &Game::updateTimerText);
     connect(blackTimer_, &Timer::expiredTime, game_, &Game::expiredTime);
 
-    game_->setTimeControl(settings.whiteTime, settings.whiteIncrement,
-                          settings.blackTime, settings.blackIncrement);
-
-    whiteTimer_->updateText();
-    blackTimer_->updateText();
+    game_->resetGame();
 
     setMinimumSize(layout_->minimumSize());
-
     grabKeyboard();
-
-    game_->updatePosition();
 }
 
 Chess::~Chess()
@@ -214,4 +199,24 @@ void Chess::keyPressEvent(QKeyEvent *event)
         emit keyPress(event->key());
     else if (event->key() == Qt::Key_Up)
         emit keyPress(event->key());
+
+    QWidget::keyPressEvent(event);
+}
+
+Settings Chess::initialSettings()
+{
+    Settings settings = Settings();
+    settings.twoPlayer = true;
+    settings.flipBoard = true;
+    settings.startWhiteVsComputer = true;
+    settings.whiteTime = 150000;
+    settings.blackTime = 150000;
+    settings.whiteIncrement = 5000;
+    settings.blackIncrement = 5000;
+    settings.selectedColorRow = 0;
+    settings.primaryCustomColor = QColorConstants::White;
+    settings.secondaryCustomColor = QColorConstants::DarkGray;
+    settings.resetGame = false;
+
+    return settings;
 }

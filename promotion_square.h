@@ -9,6 +9,7 @@
 class PromotionSquare : public Square
 {
     Q_OBJECT
+
 public:
     explicit PromotionSquare(QWidget *parent, int row, int col);
 

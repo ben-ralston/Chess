@@ -10,15 +10,14 @@
 
 class ChessLayout : public QLayout
 {
+    Q_OBJECT
+
 public:
     enum Region { West, North, South, East, Board, Promotion, EndScreen };
 
     explicit ChessLayout(QWidget *parent, const QMargins &margins = QMargins(), int spacing = -1);
     ~ChessLayout();
-
     void addLayout(QLayout *layout, Region region);
-    void addFrame(QFrame *frame, Region region);
-    void addTable(QTableView *item, Region region);
     void addWidget(QWidget *widget, Region region, int row = -1, int col = -1);
     void addItem(QLayoutItem *item) override;
     int count() const override;

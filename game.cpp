@@ -8,11 +8,12 @@
 
 using namespace std;
 
-Game::Game(QObject *parent) :
+Game::Game(QObject *parent, int whiteTime, int blackTime, int whiteIncrement, int blackIncrement) :
     QObject(parent),
     selected_{-1, -1},
     flipBoard_(true)
 {
+    setTimeControl(whiteTime, blackTime, whiteIncrement, blackIncrement);
     resetGame();
 }
 

@@ -23,16 +23,6 @@ void ChessLayout::addLayout(QLayout *layout, Region region)
     add(layout, region);
 }
 
-void ChessLayout::addFrame(QFrame *frame, Region region)
-{
-    add(new QWidgetItem(frame), region);
-}
-
-void ChessLayout::addTable(QTableView *item, Region region)
-{
-    add(new QWidgetItem(item), region);
-}
-
 void ChessLayout::addWidget(QWidget *widget, Region region, int row, int col)
 {
     add(new QWidgetItem(widget), region, row, col);

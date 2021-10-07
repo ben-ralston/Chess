@@ -38,6 +38,7 @@ signals:
 
 private:
     void keyPressEvent(QKeyEvent *event) override;
+    Settings initialSettings();
 
     Ui::Chess *ui_;
     Game *game_;

@@ -16,7 +16,7 @@ class Game : public QObject
     Q_OBJECT
 
 public:
-    explicit Game(QObject *parent = nullptr);
+    explicit Game(QObject *parent, int whiteTime, int blackTime, int whiteIncrement, int blackIncrement);
     ~Game();
     void updatePosition();
     void updateClocks();
