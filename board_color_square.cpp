@@ -24,8 +24,6 @@ const QColor &BoardColorSquare::color() const
 void BoardColorSquare::setColor(const QColor &newColor)
 {
     color_ = newColor;
-    if (selected_)
-        emit selectedColor(color_, left_);
     update();
 }
 
@@ -36,13 +34,7 @@ QSize BoardColorSquare::sizeHint() const
 
 void BoardColorSquare::setSelected(int row)
 {
-    if (row_ == row) {
-        selected_ = true;
-        emit selectedColor(color_, left_);
-    }
-    else
-        selected_ = false;
-
+    selected_ = row_== row;
     update();
 }
 

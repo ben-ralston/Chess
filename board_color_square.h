@@ -18,7 +18,6 @@ public slots:
 
 signals:
     void clicked(int row);
-    void selectedColor(QColor color, bool primary);
 
 private:
     void mouseReleaseEvent(QMouseEvent *event) override;
