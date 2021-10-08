@@ -2,10 +2,9 @@
 #define SETTINGS_DIALOG_H
 
 #include <QDialog>
-//#include <QColorConstants>
 
-#include "board_color_square.h"
 #include "settings.h"
+#include "board_color_square.h"
 
 QT_BEGIN_NAMESPACE
 namespace Ui {

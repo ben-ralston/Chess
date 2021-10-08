@@ -30,6 +30,7 @@ Square::~Square()
 
 QImage *Square::loadImages()
 {
+    // TODO Make this not hardcoded
     QString name_template = "/Users/benralston/Programming/Chess_root/Chess/Images/%1.png";
     QString filename;
     QImage *images = new QImage[12];
