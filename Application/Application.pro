@@ -34,7 +34,7 @@ HEADERS += \
 FORMS += \
     chess.ui
 
-include(../SettingsDialog/SettingsDialog.pri)
+include(../settings/settings.pri)
 
 # Default rules for deployment.
 qnx: target.path = /tmp/$${TARGET}/bin

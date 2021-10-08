@@ -10,7 +10,7 @@
 #include "piece.h"
 #include "timer.h"
 #include "notation_model.h"
-#include "SettingsDialog/settings_dialog.h"
+#include "settings/settings_dialog.h"
 
 QT_BEGIN_NAMESPACE
 namespace Ui {

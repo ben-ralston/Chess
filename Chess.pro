@@ -1,10 +1,10 @@
 TEMPLATE = subdirs
 
 SUBDIRS += \
-    Application \
-    SettingsDialog
+    application \
+    settings
 
-Application.depends = SettingsDialog
+application.depends = settings
 
 #CONFIG += c++11
 

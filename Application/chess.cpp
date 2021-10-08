@@ -13,8 +13,8 @@
 #include "position.h"
 #include "piece.h"
 #include "notation_model.h"
-#include "SettingsDialog/settings_dialog.h"
-#include "SettingsDialog/settings.h"
+#include "settings/settings_dialog.h"
+#include "settings/settings.h"
 
 using namespace std;
 

@@ -12,18 +12,16 @@ CONFIG += c++11
 #DEFINES += QT_DISABLE_DEPRECATED_BEFORE=0x060000    # disables all the APIs deprecated before Qt 6.0.0
 
 SOURCES += \
-    SettingsDialog/board_color_square.cpp \
-    SettingsDialog/settings_dialog.cpp
+    settings/board_color_square.cpp \
+    settings/settings_dialog.cpp
 
 HEADERS += \
-    SettingsDialog/board_color_square.h \
-    SettingsDialog/settings.h \
-    SettingsDialog/settings_dialog.h
+    settings/board_color_square.h \
+    settings/settings.h \
+    settings/settings_dialog.h
 
 FORMS += \
-    SettingsDialog/settings_dialog.ui
-
-message($$TARGET)
+    settings/settings_dialog.ui
 
 # Default rules for deployment.
 unix {
