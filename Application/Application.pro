@@ -11,28 +11,28 @@ CONFIG += c++11
 #DEFINES += QT_DISABLE_DEPRECATED_BEFORE=0x060000    # disables all the APIs deprecated before Qt 6.0.0
 
 SOURCES += \
-    chess.cpp \
-    chess_layout.cpp \
-    game.cpp \
-    main.cpp \
-    notation_model.cpp \
-    promotion_square.cpp \
-    square.cpp \
-    timer.cpp
+    application/chess.cpp \
+    application/chess_layout.cpp \
+    application/game.cpp \
+    application/main.cpp \
+    application/notation_model.cpp \
+    application/promotion_square.cpp \
+    application/square.cpp \
+    application/timer.cpp
 
 HEADERS += \
-    chess.h \
-    chess_layout.h \
-    game.h \
-    notation_model.h \
-    piece.h \
-    position.h \
-    promotion_square.h \
-    square.h \
-    timer.h
+    application/chess.h \
+    application/chess_layout.h \
+    application/game.h \
+    application/notation_model.h \
+    application/piece.h \
+    application/position.h \
+    application/promotion_square.h \
+    application/square.h \
+    application/timer.h
 
 FORMS += \
-    chess.ui
+    application/chess.ui
 
 include(../settings/settings.pri)
 
