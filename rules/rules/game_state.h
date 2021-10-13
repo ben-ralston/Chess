@@ -1,5 +1,5 @@
-#ifndef GAMESTATE_H
-#define GAMESTATE_H
+#ifndef GAME_STATE_H
+#define GAME_STATE_H
 
 #include <vector>
 
@@ -9,23 +9,32 @@
 #include "position.h"
 #include "move.h"
 
-
 class GameState
 {
 public:
-    GameState();
-
     enum VictoryType { NA, WhiteCheckmate, BlackCheckmate, DrawRepetition, DrawFifty, DrawMaterial, DrawStalemate };
 
-    void reset();
-    std::vector<Move> getLegalMoves() const;
-    std::vector<Move> getPromotionMoves(const std::vector<Move> &legalMoves) const;
+    GameState();
     bool isSelectable(int row, int col) const;
-    QString makeMovePublic(int from[2], int to[2], Piece promotionPiece);
+    void getLegalMoves(std::vector<Move> &output) const;
+    void getPromotionMoves(const std::vector<Move> &legalMoves, std::vector<Move> &output) const;
+    QString makeMove(int from[2], int to[2], Piece promotionPiece);
     Position savePosition() const;
     VictoryType getOutcome(const std::vector<Position> &gameHistory) const;
+    void reset();
 
 private:
+    const Piece startingPosition_[8][8] = {
+        { BlackRook, BlackKnight, BlackBishop, BlackQueen, BlackKing, BlackBishop, BlackKnight, BlackRook },
+        { BlackPawn, BlackPawn, BlackPawn, BlackPawn, BlackPawn, BlackPawn, BlackPawn, BlackPawn },
+        { None, None, None, None, None, None, None, None },
+        { None, None, None, None, None, None, None, None },
+        { None, None, None, None, None, None, None, None },
+        { None, None, None, None, None, None, None, None },
+        { WhitePawn, WhitePawn, WhitePawn, WhitePawn, WhitePawn, WhitePawn, WhitePawn, WhitePawn },
+        { WhiteRook, WhiteKnight, WhiteBishop, WhiteQueen, WhiteKing, WhiteBishop, WhiteKnight, WhiteRook },
+    };
+
     QString algebraicNotation(int from[2], int to[2], Piece fromPiece,
                               Piece toPiece, Piece promotionPiece) const;
     bool canMove() const;
@@ -76,17 +85,6 @@ private:
     int whitePassantColumn_;
     int blackPassantColumn_;
     int movesNoProgess_;
-
-    const Piece startingPosition_[8][8] = {
-        { BlackRook, BlackKnight, BlackBishop, BlackQueen, BlackKing, BlackBishop, BlackKnight, BlackRook },
-        { BlackPawn, BlackPawn, BlackPawn, BlackPawn, BlackPawn, BlackPawn, BlackPawn, BlackPawn },
-        { None, None, None, None, None, None, None, None },
-        { None, None, None, None, None, None, None, None },
-        { None, None, None, None, None, None, None, None },
-        { None, None, None, None, None, None, None, None },
-        { WhitePawn, WhitePawn, WhitePawn, WhitePawn, WhitePawn, WhitePawn, WhitePawn, WhitePawn },
-        { WhiteRook, WhiteKnight, WhiteBishop, WhiteQueen, WhiteKing, WhiteBishop, WhiteKnight, WhiteRook },
-    };
 };
 
-#endif // GAMESTATE_H
+#endif // GAME_STATE_H

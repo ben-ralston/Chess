@@ -12,49 +12,35 @@ GameState::GameState()
     reset();
 }
 
-void GameState::reset()
+bool GameState::isSelectable(int row, int col) const
 {
-    whiteTurn_ = true;
-    whiteKingsideCastle_ = true;
-    whiteQueensideCastle_ = true;
-    blackKingsideCastle_ = true;
-    blackQueensideCastle_ = true;
-    whitePassantColumn_ = -1;
-    blackPassantColumn_ = -1;
-    movesNoProgess_ = 0;
-
-    for (int row = 0; row < 8; row++) {
-        for (int col = 0; col < 8; col++) {
-            board_[row][col] = startingPosition_[row][col];
-        }
-    }
+    int pos[2] = { row, col };
+    return opponentPiece(pos, !whiteTurn_, board_);
 }
 
-std::vector<Move> GameState::getLegalMoves() const
+void GameState::getLegalMoves(std::vector<Move> &output) const
 {
-    std::vector<Move> moves;
+    output.clear();
+
     int from[2];
     int to[2];
-
     for (from[0] = 0; from[0] < 8; from[0]++) {
         for (from[1] = 0; from[1] < 8; from[1]++) {
             for (to[0] = 0; to[0] < 8; to[0]++) {
                 for (to[1] = 0; to[1] < 8; to[1]++) {
                     if (opponentPiece(from, !whiteTurn_, board_)) {
                         if (legalMove(from, to, whiteTurn_))
-                            moves.push_back(Move(from, to));
+                            output.push_back(Move(from, to));
                     }
                 }
             }
         }
     }
-
-    return moves;
 }
 
-std::vector<Move> GameState::getPromotionMoves(const std::vector<Move> &legalMoves) const
+void GameState::getPromotionMoves(const std::vector<Move> &legalMoves, std::vector<Move> &output) const
 {
-    std::vector<Move> promotionMoves;
+    output.clear();
 
     int from[2];
     int to[2];
@@ -62,23 +48,14 @@ std::vector<Move> GameState::getPromotionMoves(const std::vector<Move> &legalMov
         it->getFromTo(from, to);
 
         if (isPromotionMove(from, to))
-            promotionMoves.push_back(*it);
+            output.push_back(*it);
     }
-
-    return promotionMoves;
 }
 
-bool GameState::isSelectable(int row, int col) const
-{
-    int pos[2] = { row, col };
-    return opponentPiece(pos, !whiteTurn_, board_);
-}
-
-QString GameState::makeMovePublic(int from[2], int to[2], Piece promotionPiece)
+QString GameState::makeMove(int from[2], int to[2], Piece promotionPiece)
 {
     Piece fromPiece = pieceAt(from, board_);
     Piece toPiece = pieceAt(to, board_);
-
     QString notationString = algebraicNotation(from, to, fromPiece, toPiece, promotionPiece);
 
     if (promotionPiece != None)
@@ -190,6 +167,20 @@ GameState::VictoryType GameState::getOutcome(const std::vector<Position> &gameHi
     if (isRepeat(gameHistory))
         return DrawRepetition;
     return NA;
+}
+
+void GameState::reset()
+{
+    copyBoard(startingPosition_, board_);
+
+    whiteTurn_ = true;
+    whiteKingsideCastle_ = true;
+    whiteQueensideCastle_ = true;
+    blackKingsideCastle_ = true;
+    blackQueensideCastle_ = true;
+    whitePassantColumn_ = -1;
+    blackPassantColumn_ = -1;
+    movesNoProgess_ = 0;
 }
 
 QString GameState::algebraicNotation(int from[2], int to[2], Piece fromPiece, Piece toPiece,
@@ -401,7 +392,8 @@ bool GameState::insufficientMaterial() const
         }
     }
 
-    // TODO Make arrays const member variables
+    // TODO Expand definition of insufficient material
+    // TODO Make arrays const member variables?
     int kingVsKing[12] = { 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 1 };
     int kingVsWhiteKnight[12] = { 0, 1, 0, 0, 0, 1, 0, 0, 0, 0, 0, 1 };
     int kingVsWhiteBishop[12] = { 0, 0, 1, 0, 0, 1, 0, 0, 0, 0, 0, 1 };
@@ -922,7 +914,7 @@ Piece GameState::pieceAt(int row, int col, const Piece (&board)[8][8]) const
 
 Piece GameState::pieceAt(int pos[2], const Piece (&board)[8][8]) const
 {
-    return board[pos[0]][pos[1]];
+    return pieceAt(pos[0], pos[1], board);
 }
 
 char GameState::rowToRank(int row) const
