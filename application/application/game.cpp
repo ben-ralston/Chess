@@ -6,6 +6,8 @@
 
 #include <QKeyEvent>
 
+#include "application_game_state.h"
+#include "engine/engine_game_state.h"
 #include "chess/piece.h"
 #include "rules/game_state.h"
 #include "rules/position.h"
@@ -108,7 +110,10 @@ void Game::mousePress(int row, int col)
         emit setPromotionColor(whiteTurn_);
         emit setPromotionVisibilty(true);
     } else if (vectorContains(from, to, legalMoves_)){
-        QString notation = gameState_.makeMove(from, to, None);
+        engineState_ = EngineGameState(gameState_, from, to, None);
+        getEvaluation();
+
+        QString notation = gameState_.move(from, to, None);
         emit notateMove(notation);
 
         processMove();
@@ -149,7 +154,10 @@ void Game::completePromotion(Piece piece)
     emit setPromotionVisibilty(false);
     choosingPromotionPiece_ = false;
 
-    QString notation = gameState_.makeMove(promotionFrom_, promotionTo_, piece);
+    engineState_ = EngineGameState(gameState_, promotionFrom_, promotionTo_, piece);
+    getEvaluation();
+
+    QString notation = gameState_.move(promotionFrom_, promotionTo_, piece);
     emit notateMove(notation);
 
     processMove();
@@ -201,6 +209,9 @@ void Game::reset()
     gameState_.reset();
     gameState_.getLegalMoves(legalMoves_);
     gameState_.getPromotionMoves(legalMoves_, promotionMoves_);
+
+    engineState_.reset();
+    getEvaluation();
 
     gameHistory_.clear();
     gameHistory_.push_back(gameState_.savePosition());
@@ -351,4 +362,11 @@ bool Game::vectorContains(int from[2], int to[2], const std::vector<Move> &moveV
     }
 
     return false;
+}
+
+void Game::getEvaluation()
+{
+    float evaluation = engineState_.evaluatePosition();
+
+    emit updateEvaluationLabel(QString::number(evaluation));
 }

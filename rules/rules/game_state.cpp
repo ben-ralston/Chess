@@ -8,10 +8,35 @@
 #include "position.h"
 #include "move.h"
 
+const Piece GameState::startingPosition_[8][8] = {
+    { BlackRook, BlackKnight, BlackBishop, BlackQueen, BlackKing, BlackBishop, BlackKnight, BlackRook },
+    { BlackPawn, BlackPawn, BlackPawn, BlackPawn, BlackPawn, BlackPawn, BlackPawn, BlackPawn },
+    { None, None, None, None, None, None, None, None },
+    { None, None, None, None, None, None, None, None },
+    { None, None, None, None, None, None, None, None },
+    { None, None, None, None, None, None, None, None },
+    { WhitePawn, WhitePawn, WhitePawn, WhitePawn, WhitePawn, WhitePawn, WhitePawn, WhitePawn },
+    { WhiteRook, WhiteKnight, WhiteBishop, WhiteQueen, WhiteKing, WhiteBishop, WhiteKnight, WhiteRook },
+};
+
 GameState::GameState()
 {
     reset();
 }
+
+//GameState::GameState(const GameState &a)
+//{
+//    copyBoard(a.board_, board_);
+
+//    whiteTurn_ = a.whiteTurn_;
+//    whiteKingsideCastle_ = a.whiteKingsideCastle_;
+//    whiteQueensideCastle_ = a.whiteQueensideCastle_;
+//    blackKingsideCastle_ = a.blackKingsideCastle_;
+//    blackQueensideCastle_ = a.blackQueensideCastle_;
+//    whitePassantColumn_ = a.whitePassantColumn_;
+//    blackPassantColumn_ = a.blackPassantColumn_;
+//    movesNoProgess_ = a.movesNoProgess_;
+//}
 
 void GameState::getLegalMoves(std::vector<Move> &output) const
 {
@@ -223,6 +248,23 @@ void GameState::makeMove(int from[2], int to[2], Piece (&board)[8][8]) const
     makeStandardMove(from, to, board);
 }
 
+void GameState::makeMoveAndUpdate(int from[2], int to[2], Piece promotionPiece)
+{
+    Piece fromPiece = pieceAt(from, board_);
+    Piece toPiece = pieceAt(to, board_);
+
+    if (promotionPiece != None)
+        makePromotionMove(from, to, promotionPiece);
+    else
+        makeMove(from, to);
+
+    updateCastle(from, to);
+    updatePassant(from, to, fromPiece);
+    updateFiftyMoves(fromPiece, toPiece);
+
+    whiteTurn_ = !whiteTurn_;
+}
+
 void GameState::makePromotionMove(int from[], int to[], Piece promotionPiece)
 {
     board_[from[0]][from[1]] = None;
@@ -239,7 +281,7 @@ bool GameState::opponentPiece(int pos[2], bool whiteTurn, const Piece (&board)[8
 
 Piece GameState::pieceAt(int pos[2], const Piece (&board)[8][8]) const
 {
-    return pieceAt(pos[0], pos[1], board);
+    return board[pos[0]][pos[1]];
 }
 
 void GameState::updateCastle(int from[2], int to[2])
@@ -292,7 +334,8 @@ void GameState::updatePassant(int from[2], int to[2], Piece fromPiece)
 
 bool GameState::emptySpace(int row, int col, const Piece (&board)[8][8]) const
 {
-    return pieceAt(row, col, board) == None;
+    int pos[2] = { row, col };
+    return pieceAt(pos, board) == None;
 }
 
 bool GameState::emptySpace(int pos[2], const Piece (&board)[8][8]) const
@@ -352,14 +395,15 @@ bool GameState::insufficientMaterial() const
     bool lightSquare;
     Piece piece;
 
-    for (int row = 0; row < 8; row++) {
-        for (int col = 0; col < 8; col++) {
-            piece = pieceAt(row, col, board_);
+    int pos[2];
+    for (pos[0] = 0; pos[0] < 8; pos[0]++) {
+        for (pos[1] = 0; pos[1] < 8; pos[1]++) {
+            piece = pieceAt(pos, board_);
             if (piece == None)
                 continue;
 
             pieceCount[piece]++;
-            lightSquare = (row + col) % 2 == 0;
+            lightSquare = (pos[0] + pos[1]) % 2 == 0;
 
             if (piece == WhiteBishop) {
                 if (lightSquare)
@@ -741,9 +785,4 @@ void GameState::makeStandardMove(int from[2], int to[2], Piece (&board)[8][8]) c
     Piece movingPiece = pieceAt(from, board_);
     board[from[0]][from[1]] = None;
     board[to[0]][to[1]] = movingPiece;
-}
-
-Piece GameState::pieceAt(int row, int col, const Piece (&board)[8][8]) const
-{
-    return board[row][col];
 }

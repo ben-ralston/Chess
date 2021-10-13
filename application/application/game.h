@@ -9,6 +9,7 @@
 #include <QString>
 
 #include "application_game_state.h"
+#include "engine/engine_game_state.h"
 #include "chess/piece.h"
 #include "rules/position.h"
 #include "rules/move.h"
@@ -44,6 +45,7 @@ signals:
     void pauseTimer(bool white, bool noIncrement = false);
     void resetTimer(bool white, int startingTime, int increment);
     void updateTimerLabels(const QString &text, bool top);
+    void updateEvaluationLabel(const QString &text);
     void notateMove(const QString &move);
     void notationMoveNumber(int move);
     void clearNotation();
@@ -58,6 +60,9 @@ private:
     void updateClocks();
     int indexAdjustment(int rowOrColIndex) const;
     bool vectorContains(int from[2], int to[2], const std::vector<Move> &moveVector) const;
+
+    void getEvaluation();
+    EngineGameState engineState_;
 
     ApplicationGameState gameState_;
     std::vector<Move> legalMoves_;

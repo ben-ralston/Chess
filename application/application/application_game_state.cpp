@@ -15,29 +15,19 @@ bool ApplicationGameState::isSelectable(int row, int col) const
     return opponentPiece(pos, !whiteTurn_, board_);
 }
 
-QString ApplicationGameState::makeMove(int from[2], int to[2], Piece promotionPiece)
+QString ApplicationGameState::move(int from[2], int to[2], Piece promotionPiece)
 {
-    Piece fromPiece = pieceAt(from, board_);
-    Piece toPiece = pieceAt(to, board_);
-    QString notationString = algebraicNotation(from, to, fromPiece, toPiece, promotionPiece);
-
-    if (promotionPiece != None)
-        makePromotionMove(from, to, promotionPiece);
-    else
-        GameState::makeMove(from, to);
-
-    updateCastle(from, to);
-    updatePassant(from, to, fromPiece);
-    updateFiftyMoves(fromPiece, toPiece);
-
-    whiteTurn_ = !whiteTurn_;
+    QString notationString = algebraicNotation(from, to, promotionPiece);
+    makeMoveAndUpdate(from, to, promotionPiece);
 
     return notationString;
 }
 
-QString ApplicationGameState::algebraicNotation(int from[2], int to[2], Piece fromPiece, Piece toPiece,
-                                     Piece promotionPiece) const
+QString ApplicationGameState::algebraicNotation(int from[2], int to[2], Piece promotionPiece) const
 {
+    Piece fromPiece = pieceAt(from, board_);
+    Piece toPiece = pieceAt(to, board_);
+
     if (fromPiece == WhiteKing || fromPiece == BlackKing) {
         if (to[1] - from[1] == 2)
             return QString("O-O");
@@ -90,7 +80,7 @@ QString ApplicationGameState::algebraicNotation(int from[2], int to[2], Piece fr
     if (inCheck(!whiteTurn_, from, to, board_)) {
         Piece boardCopy[8][8];
         copyBoard(board_, boardCopy);
-        GameState::makeMove(from, to, boardCopy);
+        makeMove(from, to, boardCopy);
 
         if (!canMove(!whiteTurn_, boardCopy))
             move.append("#");

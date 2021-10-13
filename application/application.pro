@@ -37,6 +37,7 @@ FORMS += \
 include(../common.pri)
 include(../settings/settings.pri)
 include(../rules/rules.pri)
+include(../engine/engine.pri)
 
 #include($$PWD/settings/settings.pri)
 #include($$PWD/common.pri)

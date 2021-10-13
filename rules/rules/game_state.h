@@ -15,6 +15,7 @@ public:
     enum VictoryType { NA, WhiteCheckmate, BlackCheckmate, DrawRepetition, DrawFifty, DrawMaterial, DrawStalemate };
 
     GameState();
+//    GameState(const GameState &a);
     void getLegalMoves(std::vector<Move> &output) const;
     void getPromotionMoves(const std::vector<Move> &legalMoves, std::vector<Move> &output) const;
     Position savePosition() const;
@@ -29,6 +30,7 @@ protected:
     bool legalMove(int from[2], int to[2], bool whiteTurn, bool allowChecks = false) const;
     void makeMove(int from[2], int to[2]);
     void makeMove(int from[2], int to[2], Piece (&board)[8][8]) const;
+    void makeMoveAndUpdate(int from[2], int to[2], Piece promotionPiece);
     void makePromotionMove(int from[2], int to[2], Piece promotionPiece);
     bool opponentPiece(int pos[2], bool whiteTurn, const Piece (&board)[8][8]) const;
     Piece pieceAt(int pos[2], const Piece (&board)[8][8]) const;
@@ -40,16 +42,7 @@ protected:
     bool whiteTurn_;
 
 private:
-    const Piece startingPosition_[8][8] = {
-        { BlackRook, BlackKnight, BlackBishop, BlackQueen, BlackKing, BlackBishop, BlackKnight, BlackRook },
-        { BlackPawn, BlackPawn, BlackPawn, BlackPawn, BlackPawn, BlackPawn, BlackPawn, BlackPawn },
-        { None, None, None, None, None, None, None, None },
-        { None, None, None, None, None, None, None, None },
-        { None, None, None, None, None, None, None, None },
-        { None, None, None, None, None, None, None, None },
-        { WhitePawn, WhitePawn, WhitePawn, WhitePawn, WhitePawn, WhitePawn, WhitePawn, WhitePawn },
-        { WhiteRook, WhiteKnight, WhiteBishop, WhiteQueen, WhiteKing, WhiteBishop, WhiteKnight, WhiteRook },
-    };
+    static const Piece startingPosition_[8][8];
 
     bool emptySpace(int row, int col, const Piece (&board)[8][8]) const;
     bool emptySpace(int pos[2], const Piece (&board)[8][8]) const;
@@ -68,7 +61,6 @@ private:
     bool makeCastleMove(int from[2], int to[2], Piece (&board)[8][8]) const;
     bool makePassantMove(int from[2], int to[2], Piece (&board)[8][8]) const;
     void makeStandardMove(int from[2], int to[2], Piece (&board)[8][8]) const;
-    Piece pieceAt(int row, int col, const Piece (&board)[8][8]) const;
 
     bool whiteKingsideCastle_;
     bool whiteQueensideCastle_;

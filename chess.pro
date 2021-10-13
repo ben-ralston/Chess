@@ -2,10 +2,12 @@ TEMPLATE = subdirs
 
 SUBDIRS += \
     application \
+    engine \
     rules \
     settings
 
-application.depends = settings rules
+engine.depends = rules
+application.depends = settings rules engine
 
 #CONFIG += c++11
 

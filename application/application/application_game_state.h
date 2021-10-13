@@ -11,11 +11,10 @@ class ApplicationGameState : public GameState
 public:
     ApplicationGameState();
     bool isSelectable(int row, int col) const;
-    QString makeMove(int from[2], int to[2], Piece promotionPiece);
+    QString move(int from[2], int to[2], Piece promotionPiece);
 
 private:
-    QString algebraicNotation(int from[2], int to[2], Piece fromPiece,
-                              Piece toPiece, Piece promotionPiece) const;
+    QString algebraicNotation(int from[2], int to[2], Piece promotionPiece) const;
 
     QString notationAmbiguity(int from[2], int to[2]) const;
     char colToFile(int col) const;

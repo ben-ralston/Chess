@@ -27,6 +27,7 @@ public:
 
 private slots:
     void updateTimerLabels(const QString &text, bool top);
+    void updateEvaluationLabel(const QString &text);
     void gameOver(const QString &color, const QString &victoryType);
     void openSettings();
     void updateSettings(int result);
