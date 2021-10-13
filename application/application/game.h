@@ -8,9 +8,9 @@
 #include <QKeyEvent>
 #include <QString>
 
+#include "application_game_state.h"
 #include "chess/piece.h"
 #include "rules/position.h"
-#include "rules/game_state.h"
 #include "rules/move.h"
 #include "timer.h"
 
@@ -59,7 +59,7 @@ private:
     int indexAdjustment(int rowOrColIndex) const;
     bool vectorContains(int from[2], int to[2], const std::vector<Move> &moveVector) const;
 
-    GameState gameState_;
+    ApplicationGameState gameState_;
     std::vector<Move> legalMoves_;
     std::vector<Move> promotionMoves_;
     std::vector<Position> gameHistory_;

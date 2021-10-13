@@ -11,6 +11,7 @@ CONFIG += c++11
 #DEFINES += QT_DISABLE_DEPRECATED_BEFORE=0x060000    # disables all the APIs deprecated before Qt 6.0.0
 
 SOURCES += \
+    application/application_game_state.cpp \
     application/chess.cpp \
     application/chess_layout.cpp \
     application/game.cpp \
@@ -21,6 +22,7 @@ SOURCES += \
     application/timer.cpp
 
 HEADERS += \
+    application/application_game_state.h \
     application/chess.h \
     application/chess_layout.h \
     application/game.h \

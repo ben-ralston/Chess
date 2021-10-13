@@ -4,18 +4,13 @@
 
 #include <QString>
 
+#include "chess/piece.h"
 #include "position.h"
 #include "move.h"
 
 GameState::GameState()
 {
     reset();
-}
-
-bool GameState::isSelectable(int row, int col) const
-{
-    int pos[2] = { row, col };
-    return opponentPiece(pos, !whiteTurn_, board_);
 }
 
 void GameState::getLegalMoves(std::vector<Move> &output) const
@@ -50,26 +45,6 @@ void GameState::getPromotionMoves(const std::vector<Move> &legalMoves, std::vect
         if (isPromotionMove(from, to))
             output.push_back(*it);
     }
-}
-
-QString GameState::makeMove(int from[2], int to[2], Piece promotionPiece)
-{
-    Piece fromPiece = pieceAt(from, board_);
-    Piece toPiece = pieceAt(to, board_);
-    QString notationString = algebraicNotation(from, to, fromPiece, toPiece, promotionPiece);
-
-    if (promotionPiece != None)
-        makePromotionMove(from, to, promotionPiece);
-    else
-        makeMove(from, to);
-
-    updateCastle(from, to);
-    updatePassant(from, to, fromPiece);
-    updateFiftyMoves(fromPiece, toPiece);
-
-    whiteTurn_ = !whiteTurn_;
-
-    return notationString;
 }
 
 Position GameState::savePosition() const
@@ -153,7 +128,7 @@ Position GameState::savePosition() const
 
 GameState::VictoryType GameState::getOutcome(const std::vector<Position> &gameHistory) const
 {
-    if (!canMove()) {
+    if (!canMove(whiteTurn_, board_)) {
         if (inCheck(whiteTurn_, board_))
             return whiteTurn_ ? BlackCheckmate : WhiteCheckmate;
         else
@@ -183,78 +158,6 @@ void GameState::reset()
     movesNoProgess_ = 0;
 }
 
-QString GameState::algebraicNotation(int from[2], int to[2], Piece fromPiece, Piece toPiece,
-                                     Piece promotionPiece) const
-{
-    if (fromPiece == WhiteKing || fromPiece == BlackKing) {
-        if (to[1] - from[1] == 2)
-            return QString("O-O");
-        if (to[1] - from[1] == -2)
-            return QString("O-O-O");
-    }
-
-    bool takes;
-    if (fromPiece == WhitePawn || fromPiece == BlackPawn)
-        takes = from[1] != to[1];
-    else
-        takes = toPiece != None;
-
-    QString move;
-    if (fromPiece == WhitePawn || fromPiece == BlackPawn) {
-        if (takes)
-            move = colToFile(from[1]);
-    } else if (fromPiece == WhiteKnight || fromPiece == BlackKnight)
-        move = "N";
-    else if (fromPiece == WhiteBishop || fromPiece == BlackBishop)
-        move = "B";
-    else if (fromPiece == WhiteRook || fromPiece == BlackRook)
-        move = "R";
-    else if (fromPiece == WhiteQueen || fromPiece == BlackQueen)
-        move = "Q";
-    else if (fromPiece == WhiteKing || fromPiece == BlackKing)
-        move = "K";
-
-    move.append(notationAmbiguity(from, to));
-
-    if (takes)
-        move.append("x");
-
-    move.append(colToFile(to[1]));
-    move.append(rowToRank(to[0]));
-
-    if (promotionPiece != None) {
-        move.append("=");
-
-        if (promotionPiece == WhiteKnight || promotionPiece == BlackKnight)
-            move.append("N");
-        else if (promotionPiece == WhiteBishop || promotionPiece == BlackBishop)
-            move.append("B");
-        else if (promotionPiece == WhiteRook || promotionPiece == BlackRook)
-            move.append("R");
-        else if (promotionPiece == WhiteQueen || promotionPiece == BlackQueen)
-            move.append("Q");
-    }
-
-    if (inCheck(!whiteTurn_, from, to, board_)) {
-        Piece boardCopy[8][8];
-        copyBoard(board_, boardCopy);
-        makeMove(from, to, boardCopy);
-
-        if (!canMove(!whiteTurn_, boardCopy))
-            move.append("#");
-        else
-            move.append("+");
-    }
-
-    return move;
-}
-
-
-bool GameState::canMove() const
-{
-    return canMove(whiteTurn_, board_);
-}
-
 bool GameState::canMove(bool whiteTurn, const Piece (&board)[8][8]) const
 {
     int from[2];
@@ -274,12 +177,6 @@ bool GameState::canMove(bool whiteTurn, const Piece (&board)[8][8]) const
     return false;
 }
 
-char GameState::colToFile(int col) const
-{
-    char file = 97 + col;
-    return file;
-}
-
 void GameState::copyBoard(const Piece (&original)[8][8], Piece (&copy)[8][8]) const
 {
     for (int row = 0; row < 8; row++) {
@@ -287,6 +184,110 @@ void GameState::copyBoard(const Piece (&original)[8][8], Piece (&copy)[8][8]) co
             copy[row][col] = original[row][col];
         }
     }
+}
+
+bool GameState::equalArrays(int a[], int b[], int len) const
+{
+    for (int i = 0; i < len; i++) {
+        if (a[i] != b[i])
+            return false;
+    }
+    return true;
+}
+
+bool GameState::inCheck(bool whiteTurn, int from[2], int to[2], const Piece (&board)[8][8]) const
+{
+    Piece boardCopy[8][8];
+    copyBoard(board, boardCopy);
+
+    makeMove(from, to, boardCopy);
+    return inCheck(whiteTurn, boardCopy);
+}
+
+bool GameState::legalMove(int from[2], int to[2], bool whiteTurn, bool allowChecks) const
+{
+    return legalMove(from, to, whiteTurn, allowChecks, board_);
+}
+
+void GameState::makeMove(int from[2], int to[2])
+{
+    makeMove(from, to, board_);
+}
+
+void GameState::makeMove(int from[2], int to[2], Piece (&board)[8][8]) const
+{
+    if (makeCastleMove(from, to, board))
+        return;
+    if (makePassantMove(from, to, board))
+        return;
+    makeStandardMove(from, to, board);
+}
+
+void GameState::makePromotionMove(int from[], int to[], Piece promotionPiece)
+{
+    board_[from[0]][from[1]] = None;
+    board_[to[0]][to[1]] = promotionPiece;
+}
+
+bool GameState::opponentPiece(int pos[2], bool whiteTurn, const Piece (&board)[8][8]) const
+{
+    if (whiteTurn)
+        return pieceAt(pos, board) >= 6;
+    else
+        return pieceAt(pos, board) >= 0 && pieceAt(pos, board) <= 5;
+}
+
+Piece GameState::pieceAt(int pos[2], const Piece (&board)[8][8]) const
+{
+    return pieceAt(pos[0], pos[1], board);
+}
+
+void GameState::updateCastle(int from[2], int to[2])
+{
+    if (from[0] == 7 && from[1] == 4) {
+        whiteKingsideCastle_ = false;
+        whiteQueensideCastle_ = false;
+    }
+    if (from[0] == 0 && from[1] == 4) {
+        blackKingsideCastle_ = false;
+        blackQueensideCastle_ = false;
+    }
+    if ((from[0] == 7 && from[1] == 7) || (to[0] == 7 && to[1] == 7))
+        whiteKingsideCastle_ = false;
+    if ((from[0] == 7 && from[1] == 0) || (to[0] == 7 && to[1] == 0))
+        whiteQueensideCastle_ = false;
+    if ((from[0] == 0 && from[1] == 7) || (to[0] == 0 && to[1] == 7))
+        blackKingsideCastle_ = false;
+    if ((from[0] == 0 && from[1] == 0) || (to[0] == 0 && to[1] == 0))
+        blackQueensideCastle_ = false;
+}
+
+void GameState::updateFiftyMoves(Piece fromPiece, Piece toPiece)
+{
+    if (fromPiece == WhitePawn || fromPiece == BlackPawn || toPiece != None)
+        movesNoProgess_ = 0;
+    else
+        movesNoProgess_++;
+}
+
+void GameState::updatePassant(int from[2], int to[2], Piece fromPiece)
+{
+    if (fromPiece == WhitePawn) {
+        if (to[0] - from[0] == -2) {
+            whitePassantColumn_ = to[1];
+            blackPassantColumn_ = -1;
+            return;
+        }
+    } else if (fromPiece == BlackPawn) {
+        if (to[0] - from[0] == 2) {
+            whitePassantColumn_ = -1;
+            blackPassantColumn_ = to[1];
+            return;
+        }
+    }
+
+    whitePassantColumn_ = -1;
+    blackPassantColumn_ = -1;
 }
 
 bool GameState::emptySpace(int row, int col, const Piece (&board)[8][8]) const
@@ -297,15 +298,6 @@ bool GameState::emptySpace(int row, int col, const Piece (&board)[8][8]) const
 bool GameState::emptySpace(int pos[2], const Piece (&board)[8][8]) const
 {
     return pieceAt(pos, board) == None;
-}
-
-bool GameState::equalArrays(int a[], int b[], int len) const
-{
-    for (int i = 0; i < len; i++) {
-        if (a[i] != b[i])
-            return false;
-    }
-    return true;
 }
 
 bool GameState::fiftyMoves() const
@@ -344,15 +336,6 @@ bool GameState::inCheck(bool whiteTurn, const Piece (&board)[8][8]) const
         }
     }
     return false;
-}
-
-bool GameState::inCheck(bool whiteTurn, int from[2], int to[2], const Piece (&board)[8][8]) const
-{
-    Piece boardCopy[8][8];
-    copyBoard(board, boardCopy);
-
-    makeMove(from, to, boardCopy);
-    return inCheck(whiteTurn, boardCopy);
 }
 
 bool GameState::insufficientMaterial() const
@@ -569,11 +552,6 @@ bool GameState::legalKnightMove(int from[2], int to[2], const Piece (&board)[8][
     return (rowDiff1 && colDiff2) || (rowDiff2 && colDiff1);
 }
 
-bool GameState::legalMove(int from[2], int to[2], bool whiteTurn, bool allowChecks) const
-{
-    return legalMove(from, to, whiteTurn, allowChecks, board_);
-}
-
 bool GameState::legalMove(int from[2], int to[2], bool whiteTurn, bool allowChecks, const Piece (&board)[8][8]) const
 {
     if (opponentPiece(from, whiteTurn, board))
@@ -732,20 +710,6 @@ bool GameState::makeCastleMove(int from[2], int to[2], Piece (&board)[8][8]) con
     return false;
 }
 
-void GameState::makeMove(int from[2], int to[2])
-{
-    makeMove(from, to, board_);
-}
-
-void GameState::makeMove(int from[2], int to[2], Piece (&board)[8][8]) const
-{
-    if (makeCastleMove(from, to, board))
-        return;
-    if (makePassantMove(from, to, board))
-        return;
-    makeStandardMove(from, to, board);
-}
-
 bool GameState::makePassantMove(int from[2], int to[2], Piece (&board)[8][8]) const
 {
     int removeDirection;
@@ -772,12 +736,6 @@ bool GameState::makePassantMove(int from[2], int to[2], Piece (&board)[8][8]) co
     return false;
 }
 
-void GameState::makePromotionMove(int from[], int to[], Piece promotionPiece)
-{
-    board_[from[0]][from[1]] = None;
-    board_[to[0]][to[1]] = promotionPiece;
-}
-
 void GameState::makeStandardMove(int from[2], int to[2], Piece (&board)[8][8]) const
 {
     Piece movingPiece = pieceAt(from, board_);
@@ -785,109 +743,7 @@ void GameState::makeStandardMove(int from[2], int to[2], Piece (&board)[8][8]) c
     board[to[0]][to[1]] = movingPiece;
 }
 
-QString GameState::notationAmbiguity(int from[2], int to[2]) const
-{
-    Piece movingPiece = pieceAt(from, board_);
-
-    bool ambiguousMove = false;
-    bool sameRow = false;
-    bool sameCol = false;
-
-    int otherPiece[2];
-    for (otherPiece[0] = 0; otherPiece[0] < 8; otherPiece[0]++) {
-        for (otherPiece[1] = 0; otherPiece[1] < 8; otherPiece[1]++) {
-            if (pieceAt(otherPiece, board_) == movingPiece && !equalArrays(from, otherPiece, 2)) {
-                if (legalMove(otherPiece, to, whiteTurn_)) {
-                    ambiguousMove = true;
-                    sameRow = from[0] == otherPiece[0] ? true : sameRow;
-                    sameCol = from[1] == otherPiece[1] ? true : sameCol;
-                }
-            }
-        }
-    }
-
-    QString string;
-    if (ambiguousMove) {
-        if (sameRow)
-            string = colToFile(from[1]);
-        if (sameCol)
-            string.append(rowToRank(from[0]));
-
-        if (string.length() == 0)
-            string = colToFile(from[1]);
-    }
-
-    return string;
-}
-
-bool GameState::opponentPiece(int pos[2], bool whiteTurn, const Piece (&board)[8][8]) const
-{
-    if (whiteTurn)
-        return pieceAt(pos, board) >= 6;
-    else
-        return pieceAt(pos, board) >= 0 && pieceAt(pos, board) <= 5;
-}
-
 Piece GameState::pieceAt(int row, int col, const Piece (&board)[8][8]) const
 {
     return board[row][col];
-}
-
-Piece GameState::pieceAt(int pos[2], const Piece (&board)[8][8]) const
-{
-    return pieceAt(pos[0], pos[1], board);
-}
-
-char GameState::rowToRank(int row) const
-{
-    char rank = 56 - row;
-    return rank;
-}
-
-void GameState::updateCastle(int from[2], int to[2])
-{
-    if (from[0] == 7 && from[1] == 4) {
-        whiteKingsideCastle_ = false;
-        whiteQueensideCastle_ = false;
-    }
-    if (from[0] == 0 && from[1] == 4) {
-        blackKingsideCastle_ = false;
-        blackQueensideCastle_ = false;
-    }
-    if ((from[0] == 7 && from[1] == 7) || (to[0] == 7 && to[1] == 7))
-        whiteKingsideCastle_ = false;
-    if ((from[0] == 7 && from[1] == 0) || (to[0] == 7 && to[1] == 0))
-        whiteQueensideCastle_ = false;
-    if ((from[0] == 0 && from[1] == 7) || (to[0] == 0 && to[1] == 7))
-        blackKingsideCastle_ = false;
-    if ((from[0] == 0 && from[1] == 0) || (to[0] == 0 && to[1] == 0))
-        blackQueensideCastle_ = false;
-}
-
-void GameState::updateFiftyMoves(Piece fromPiece, Piece toPiece)
-{
-    if (fromPiece == WhitePawn || fromPiece == BlackPawn || toPiece != None)
-        movesNoProgess_ = 0;
-    else
-        movesNoProgess_++;
-}
-
-void GameState::updatePassant(int from[2], int to[2], Piece fromPiece)
-{
-    if (fromPiece == WhitePawn) {
-        if (to[0] - from[0] == -2) {
-            whitePassantColumn_ = to[1];
-            blackPassantColumn_ = -1;
-            return;
-        }
-    } else if (fromPiece == BlackPawn) {
-        if (to[0] - from[0] == 2) {
-            whitePassantColumn_ = -1;
-            blackPassantColumn_ = to[1];
-            return;
-        }
-    }
-
-    whitePassantColumn_ = -1;
-    blackPassantColumn_ = -1;
 }
