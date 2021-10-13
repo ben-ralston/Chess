@@ -44,8 +44,6 @@ private:
     ChessLayout *layout_;
     Timer *whiteTimer_;
     Timer *blackTimer_;
-    QString topTimerText_;
-    QString bottomTimerText_;
     NotationModel *model_;
     SettingsDialog *settingsDialog_;
 };

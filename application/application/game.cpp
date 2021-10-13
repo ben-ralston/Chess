@@ -7,37 +7,25 @@
 #include <QKeyEvent>
 
 #include "chess/piece.h"
-#include "rules/position.h"
 #include "rules/game_state.h"
+#include "rules/position.h"
 #include "rules/move.h"
 
 using namespace std;
 
 Game::Game(QObject *parent, int whiteTime, int blackTime, int whiteIncrement, int blackIncrement) :
     QObject(parent),
-    selected_{-1, -1},
+    selectedSquare_{-1, -1},
     flipBoard_(true)
 {
     setTimeControl(whiteTime, blackTime, whiteIncrement, blackIncrement);
-    resetGame();
+    reset();
 }
 
-Game::~Game()
+void Game::updateGame()
 {
-}
-
-void Game::updatePosition()
-{
-    Position position = gameHistory_[shownMoveNumber_];
-    Piece piece;
-
-    for (int row = 0; row < 8; row++) {
-        for (int col = 0; col < 8; col++) {
-            piece = position.board[indexAdjustment(row)]
-                                  [indexAdjustment(col)];
-            emit setPiece(row, col, piece);
-        }
-    }
+    updatePosition();
+    updateClocks();
 }
 
 void Game::setTimeControl(int whiteTime, int blackTime, int whiteIncrement, int blackIncrement)
@@ -53,41 +41,57 @@ void Game::setFlipBoard(bool newFlipBoard)
     flipBoard_ = newFlipBoard;
     if (!whiteTurn_)
         rotateSelectedSquare();
-//    clearSelectedSquare();
 }
 
-void Game::updateClocks() {
-    if (flipBoard_) {
-        emit updateTimerLabels(whiteTimerText_, !whiteTurn_);
-        emit updateTimerLabels(blackTimerText_, whiteTurn_);
-    } else {
-        emit updateTimerLabels(whiteTimerText_, false);
-        emit updateTimerLabels(blackTimerText_, true);
+void Game::mousePress(int row, int col)
+{
+    if (gameOver_)
+        return;
+    if (shownMoveNumber_ != trueMoveNumber_)
+        return;
+
+    if (choosingPromotionPiece_) {
+        choosingPromotionPiece_ = false;
+        emit setPromotionVisibilty(false);
+        clearSelectedSquare();
+        return;
     }
-}
 
-void Game::completePromotion(Piece piece)
-{
-    emit setPromotionVisibilty(false);
-    choosingPromotionPiece_ = false;
+    int adjRow = indexAdjustment(row);
+    int adjCol = indexAdjustment(col);
+    bool selectable = gameState_.isSelectable(adjRow, adjCol);
 
-    QString notation = gameState_.makeMovePublic(savedFrom_, savedTo_, piece);
-    emit notateMove(notation);
+    if (selectedSquare_[0] == row && selectedSquare_[1] == col) {
+        clearSelectedSquare();
+        return;
+    }
+    if (selectable) {
+        setSelectedSquare(row, col);
+        return;
+    }
+    if (selectedSquare_[0] == -1)
+        return;
 
-    updateGameInfo();
-}
+    int from[2] = { indexAdjustment(selectedSquare_[0]), indexAdjustment(selectedSquare_[1]) };
+    int to[2] = {adjRow, adjCol};
 
-void Game::expiredTime(bool white)
-{
-    // TODO Implement variable behavior based on winning color
-    QString color = white ? "Black Wins!" : "White Wins!";
-    QString type = "on Time";
-    emit gameEnded(color, type);
+    if (vectorContains(from, to, promotionMoves_)) {
+        promotionFrom_[0] = from[0];
+        promotionFrom_[1] = from[1];
+        promotionTo_[0] = to[0];
+        promotionTo_[1] = to[1];
 
-    emit pauseTimer(whiteTurn_, true);
-    clearSelectedSquare();
-    updatePosition();
-    gameOver_ = true;
+        choosingPromotionPiece_ = true;
+
+        emit setPromotionColor(whiteTurn_);
+        emit setPromotionVisibilty(true);
+    } else if (vectorContains(from, to, legalMoves_)){
+        QString notation = gameState_.makeMove(from, to, None);
+        emit notateMove(notation);
+
+        processMove();
+    } else
+        clearSelectedSquare();
 }
 
 void Game::keyPress(int key)
@@ -118,86 +122,27 @@ void Game::keyPress(int key)
     updatePosition();
 }
 
-void Game::mousePress(int row, int col)
+void Game::completePromotion(Piece piece)
 {
-    if (gameOver_)
-        return;
-    if (shownMoveNumber_ != trueMoveNumber_)
-        return;
-
-    if (choosingPromotionPiece_) {
-        choosingPromotionPiece_ = false;
-        emit setPromotionVisibilty(false);
-        clearSelectedSquare();
-        return;
-    }
-
-    int adjRow = indexAdjustment(row);
-    int adjCol = indexAdjustment(col);
-    bool selectable = gameState_.isSelectable(adjRow, adjCol);
-
-    if (selected_[0] == row && selected_[1] == col) {
-        clearSelectedSquare();
-        return;
-    }
-    if (selectable) {
-        setSelectedSquare(row, col);
-        return;
-    }
-    if (selected_[0] == -1)
-        return;
-
-    int from[2] = { indexAdjustment(selected_[0]), indexAdjustment(selected_[1]) };
-    int to[2] = {adjRow, adjCol};
-
-    if (std::find(promotionMoves_.begin(), promotionMoves_.end(), Move(from, to)) != promotionMoves_.end()) {
-//    if (vectorContains(from, to, promotionMoves_)) {
-        savedFrom_[0] = from[0];
-        savedFrom_[1] = from[1];
-        savedTo_[0] = to[0];
-        savedTo_[1] = to[1];
-
-        choosingPromotionPiece_ = true;
-
-        emit setPromotionColor(whiteTurn_);
-        emit setPromotionVisibilty(true);
-    } else if (std::find(legalMoves_.begin(), legalMoves_.end(), Move(from, to)) != legalMoves_.end()) {
-//    } else if (vectorContains(from, to, legalMoves_)){
-        QString notation = gameState_.makeMovePublic(from, to, None);
-        emit notateMove(notation);
-
-        updateGameInfo();
-    } else
-        clearSelectedSquare();
-
-}
-
-void Game::resetGame()
-{
-    gameOver_ = false;
-    whiteTurn_ = true;
-    clearSelectedSquare();
-    shownMoveNumber_ = 0;
-    trueMoveNumber_ = 0;
+    emit setPromotionVisibilty(false);
     choosingPromotionPiece_ = false;
 
-    gameState_.reset();
+    QString notation = gameState_.makeMove(promotionFrom_, promotionTo_, piece);
+    emit notateMove(notation);
 
-    // TODO Pass legalMoves_ in as parameter
-    legalMoves_ = gameState_.getLegalMoves();
-    promotionMoves_ = gameState_.getPromotionMoves(legalMoves_);
+    processMove();
+}
 
-    gameHistory_.clear();
-    gameHistory_.push_back(gameState_.savePosition());
+void Game::expiredTime(bool white)
+{
+    QString color = white ? "Black Wins!" : "White Wins!";
+    QString type = "on Time";
+    emit gameEnded(color, type);
 
-    emit resetTimer(true, whiteTime_, whiteIncrement_);
-    emit resetTimer(false, blackTime_, blackIncrement_);
-    emit clearNotation();
-    emit notationMoveNumber(-1);
-    emit setPromotionVisibilty(false);
-
+    emit pauseTimer(whiteTurn_, true);
+    clearSelectedSquare();
     updatePosition();
-    updateClocks();
+    gameOver_ = true;
 }
 
 void Game::updateShownMove(int move)
@@ -222,104 +167,58 @@ void Game::updateTimerText(const QString &text, bool white)
     updateClocks();
 }
 
-bool Game::vectorContains(int from[2], int to[2], const std::vector<Move> &moveVector) const
+void Game::reset()
 {
-    Move target = Move(from, to);
+    gameOver_ = false;
+    whiteTurn_ = true;
+    clearSelectedSquare();
+    shownMoveNumber_ = 0;
+    trueMoveNumber_ = 0;
+    choosingPromotionPiece_ = false;
 
-    int lowerBound = 0;
-    int upperBound = moveVector.size() - 1;
-    int index = upperBound / 2;
+    gameState_.reset();
+    gameState_.getLegalMoves(legalMoves_);
+    gameState_.getPromotionMoves(legalMoves_, promotionMoves_);
 
-    while (lowerBound <= upperBound) {
-        if (target == moveVector[index])
-            return true;
+    gameHistory_.clear();
+    gameHistory_.push_back(gameState_.savePosition());
 
-        if (target < moveVector[index])
-            upperBound = index - 1;
-        else
-            lowerBound = index + 1;
+    emit resetTimer(true, whiteTime_, whiteIncrement_);
+    emit resetTimer(false, blackTime_, blackIncrement_);
+    emit clearNotation();
+    emit notationMoveNumber(-1);
+    emit setPromotionVisibilty(false);
 
-        index = (lowerBound + upperBound) / 2;
-    }
-
-    return false;
+    updatePosition();
+    updateClocks();
 }
-
-//bool Game::lessThan(const int a[4], const int b[4]) const
-//{
-//    if (a[0] < b[0])
-//        return true;
-//    if (a[1] < b[1])
-//        return true;
-//    if (a[2] < b[2])
-//        return true;
-//    return a[3] < b[3];
-//}
-
-//bool Game::equal(const int a[4], const int b[4]) const
-//{
-//    for (int i = 0; i < 4; i++) {
-//        if (a[i] != b[i])
-//            return false;
-//    }
-
-//    return true;
-//}
-
-
-
-void Game::clearSelectedSquare()
-{
-    if (selected_[0] == -1)
-        return;
-
-    emit highlightSquare(selected_);
-    selected_[0] = -1;
-    selected_[1] = -1;
-}
-
-
-
-int Game::indexAdjustment(int rowOrColIndex) const
-{
-    if (flipBoard_)
-        return whiteTurn_ ? rowOrColIndex : 7 - rowOrColIndex;
-    else
-        return rowOrColIndex;
-}
-
-
-
-void Game::pressClock()
-{
-    if (trueMoveNumber_ == 2)
-        emit startTimer(whiteTurn_);
-    else if (trueMoveNumber_ > 2) {
-        emit startTimer(whiteTurn_);
-        emit pauseTimer(!whiteTurn_);
-    }
-}
-
-void Game::rotateSelectedSquare()
-{
-    if (selected_[0] == -1)
-        return;
-    setSelectedSquare(7 - selected_[0], 7 - selected_[1]);
-}
-
-
 
 void Game::setSelectedSquare(int row, int col)
 {
     clearSelectedSquare();
-    selected_[0] = row;
-    selected_[1] = col;
-    emit highlightSquare(selected_);
+    selectedSquare_[0] = row;
+    selectedSquare_[1] = col;
+    emit highlightSquare(selectedSquare_);
 }
 
+void Game::clearSelectedSquare()
+{
+    if (selectedSquare_[0] == -1)
+        return;
 
+    emit highlightSquare(selectedSquare_);
+    selectedSquare_[0] = -1;
+    selectedSquare_[1] = -1;
+}
 
-void Game::updateGameInfo()
+void Game::rotateSelectedSquare()
+{
+    if (selectedSquare_[0] == -1)
+        return;
+    setSelectedSquare(7 - selectedSquare_[0], 7 - selectedSquare_[1]);
+}
+
+void Game::processMove()
 {
     gameHistory_.push_back(gameState_.savePosition());
     GameState::VictoryType victory = gameState_.getOutcome(gameHistory_);
@@ -331,8 +230,8 @@ void Game::updateGameInfo()
     QString color;
     QString type;
     if (victory == GameState::NA) {
-        legalMoves_ = gameState_.getLegalMoves();
-        promotionMoves_ = gameState_.getPromotionMoves(legalMoves_);
+        gameState_.getLegalMoves(legalMoves_);
+        gameState_.getPromotionMoves(legalMoves_, promotionMoves_);
 
         whiteTurn_ = !whiteTurn_;
 
@@ -364,4 +263,70 @@ void Game::updateGameInfo()
     gameOver_ = true;
     clearSelectedSquare();
     updatePosition();
+}
+
+void Game::pressClock()
+{
+    if (trueMoveNumber_ == 2)
+        emit startTimer(whiteTurn_);
+    else if (trueMoveNumber_ > 2) {
+        emit startTimer(whiteTurn_);
+        emit pauseTimer(!whiteTurn_);
+    }
+}
+
+void Game::updatePosition()
+{
+    Position position = gameHistory_[shownMoveNumber_];
+    Piece piece;
+
+    for (int row = 0; row < 8; row++) {
+        for (int col = 0; col < 8; col++) {
+            piece = position.board[indexAdjustment(row)]
+                                  [indexAdjustment(col)];
+            emit setPiece(row, col, piece);
+        }
+    }
+}
+
+void Game::updateClocks()
+{
+    if (flipBoard_) {
+        emit updateTimerLabels(whiteTimerText_, !whiteTurn_);
+        emit updateTimerLabels(blackTimerText_, whiteTurn_);
+    } else {
+        emit updateTimerLabels(whiteTimerText_, false);
+        emit updateTimerLabels(blackTimerText_, true);
+    }
+}
+
+int Game::indexAdjustment(int rowOrColIndex) const
+{
+    if (flipBoard_)
+        return whiteTurn_ ? rowOrColIndex : 7 - rowOrColIndex;
+    else
+        return rowOrColIndex;
+}
+
+bool Game::vectorContains(int from[2], int to[2], const std::vector<Move> &moveVector) const
+{
+    Move target = Move(from, to);
+
+    int lowerBound = 0;
+    int upperBound = moveVector.size() - 1;
+    int index = upperBound / 2;
+
+    while (lowerBound <= upperBound) {
+        if (target == moveVector[index])
+            return true;
+
+        if (target < moveVector[index])
+            upperBound = index - 1;
+        else
+            lowerBound = index + 1;
+
+        index = (lowerBound + upperBound) / 2;
+    }
+
+    return false;
 }

@@ -1,16 +1,15 @@
 #include "chess.h"
+#include "ui_chess.h"
 
 #include <QKeyEvent>
 #include <QHeaderView>
 #include <QWidget>
 
-#include "ui_chess.h"
 #include "game.h"
 #include "chess_layout.h"
 #include "square.h"
 #include "promotion_square.h"
 #include "timer.h"
-#include "position.h"
 #include "chess/piece.h"
 #include "notation_model.h"
 #include "settings/settings_dialog.h"
@@ -34,12 +33,9 @@ Chess::Chess(QWidget *parent) :
     game_ = new Game(this, settings.whiteTime, settings.blackTime, settings.whiteIncrement, settings.blackIncrement);
     connect(game_, &Game::gameEnded, this, &Chess::gameOver);
     connect(game_, &Game::updateTimerLabels, this, &Chess::updateTimerLabels);
-    connect(ui_->newGame, &QPushButton::clicked, game_, &Game::resetGame);
-    connect(ui_->winNewGame, &QPushButton::clicked, game_, &Game::resetGame);
+    connect(ui_->newGame, &QPushButton::clicked, game_, &Game::reset);
+    connect(ui_->winNewGame, &QPushButton::clicked, game_, &Game::reset);
     connect(this, &Chess::keyPress, game_, &Game::keyPress);
-
-    game_->setTimeControl(settings.whiteTime, settings.blackTime,
-                          settings.whiteIncrement, settings.blackIncrement);
 
     model_ = new NotationModel(this);
     connect(model_, &NotationModel::updateShownMove, game_, &Game::updateShownMove);
@@ -121,10 +117,10 @@ Chess::Chess(QWidget *parent) :
     connect(blackTimer_, &Timer::currentTimeText, game_, &Game::updateTimerText);
     connect(blackTimer_, &Timer::expiredTime, game_, &Game::expiredTime);
 
-    game_->resetGame();
-
     setMinimumSize(layout_->minimumSize());
     grabKeyboard();
+
+    game_->reset();
 }
 
 Chess::~Chess()
@@ -179,11 +175,9 @@ void Chess::updateSettings(int result)
         game_->setFlipBoard(settings.flipBoard);
 
         if (settings.resetGame)
-            game_->resetGame();
-        else {
-            game_->updatePosition();
-            game_->updateClocks();
-        }
+            game_->reset();
+        else
+            game_->updateGame();
     } else
         settingsDialog_->revertSettings();
 

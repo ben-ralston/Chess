@@ -18,65 +18,44 @@ class Game : public QObject
     Q_OBJECT
 
 public:
-    explicit Game(QObject *parent, int whiteTime, int blackTime, int whiteIncrement, int blackIncrement);
-    ~Game();
-    void updatePosition();
-    void updateClocks();
+    Game(QObject *parent, int whiteTime, int blackTime, int whiteIncrement, int blackIncrement);
+    void updateGame();
     void setTimeControl(int whiteTime, int blackTime, int whiteIncrement, int blackIncrement);
     void setFlipBoard(bool newFlipBoard);
 
 public slots:
+    void mousePress(int row, int col);
+    void keyPress(int key);
     void completePromotion(Piece piece);
     void expiredTime(bool white);
-    void keyPress(int key);
-    void mousePress(int row, int col);
-    void resetGame();
     void updateShownMove(int move);
     void updateTimerText(const QString &text, bool white);
+    void reset();
 
 signals:
-    void gameEnded(const QString &color, const QString &victoryType);
-    void highlightSquare(int pos[2]);
     void setPiece(int row, int col, Piece piece);
+    void highlightSquare(int pos[2]);
     void setPromotionColor(bool white);
     void setPromotionVisibilty(bool visible);
+    void gameEnded(const QString &color, const QString &victoryType);
     void startTimer(bool white);
     void pauseTimer(bool white, bool noIncrement = false);
     void resetTimer(bool white, int startingTime, int increment);
     void updateTimerLabels(const QString &text, bool top);
     void notateMove(const QString &move);
-    void clearNotation();
     void notationMoveNumber(int move);
+    void clearNotation();
 
 private:
-    bool vectorContains(int from[2], int to[2], const std::vector<Move> &moveVector) const;
-
-//    bool lessThan(const int a[4], const int b[4]) const;
-//    bool equal(const int a[4], const int b[4]) const;
-
-    void clearSelectedSquare();
-
-    int indexAdjustment(int rowOrColIndex) const;
-
-
-
-    void pressClock();
-    void rotateSelectedSquare();
     void setSelectedSquare(int row, int col);
-
-    void updateGameInfo();
-
-
-    const Piece startingPosition_[8][8] = {
-        { BlackRook, BlackKnight, BlackBishop, BlackQueen, BlackKing, BlackBishop, BlackKnight, BlackRook },
-        { BlackPawn, BlackPawn, BlackPawn, BlackPawn, BlackPawn, BlackPawn, BlackPawn, BlackPawn },
-        { None, None, None, None, None, None, None, None },
-        { None, None, None, None, None, None, None, None },
-        { None, None, None, None, None, None, None, None },
-        { None, None, None, None, None, None, None, None },
-        { WhitePawn, WhitePawn, WhitePawn, WhitePawn, WhitePawn, WhitePawn, WhitePawn, WhitePawn },
-        { WhiteRook, WhiteKnight, WhiteBishop, WhiteQueen, WhiteKing, WhiteBishop, WhiteKnight, WhiteRook },
-    };
+    void clearSelectedSquare();
+    void rotateSelectedSquare();
+    void processMove();
+    void pressClock();
+    void updatePosition();
+    void updateClocks();
+    int indexAdjustment(int rowOrColIndex) const;
+    bool vectorContains(int from[2], int to[2], const std::vector<Move> &moveVector) const;
 
     GameState gameState_;
     std::vector<Move> legalMoves_;
@@ -84,16 +63,15 @@ private:
     std::vector<Position> gameHistory_;
     bool whiteTurn_;
     bool gameOver_;
-    int selected_[2];
+    int selectedSquare_[2];
     int shownMoveNumber_;
     int trueMoveNumber_;
+    bool choosingPromotionPiece_;
+    int promotionFrom_[2];
+    int promotionTo_[2];
 
     QString whiteTimerText_;
     QString blackTimerText_;
-    bool choosingPromotionPiece_;
-    int savedFrom_[2];
-    int savedTo_[2];
-
     int whiteTime_;
     int blackTime_;
     int whiteIncrement_;

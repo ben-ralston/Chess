@@ -25,7 +25,6 @@ HEADERS += \
     application/chess_layout.h \
     application/game.h \
     application/notation_model.h \
-    application/position.h \
     application/promotion_square.h \
     application/square.h \
     application/timer.h
