@@ -1,7 +1,7 @@
 #ifndef POSITION_H
 #define POSITION_H
 
-#include "piece.h"
+#include "chess/piece.h"
 
 struct Position
 {

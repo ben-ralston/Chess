@@ -3,7 +3,7 @@
 
 #include <QWidget>
 
-#include "piece.h"
+#include "chess/piece.h"
 
 class Square : public QWidget
 {

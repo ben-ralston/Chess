@@ -8,8 +8,10 @@
 #include <QKeyEvent>
 #include <QString>
 
-#include "piece.h"
-#include "position.h"
+#include "chess/piece.h"
+#include "position/position.h"
+#include "position/game_state.h"
+#include "position/move.h"
 
 class Game : public QObject
 {
@@ -47,53 +49,23 @@ signals:
     void notationMoveNumber(int move);
 
 private:
-    void algebraicNotation(int from[2], int to[2], Piece fromPiece, Piece toPiece,
-                           Piece promoPiece, const QString &ambiguityString, bool checkMate);
-    bool canMove();
-    char colToFile(int col) const;
+    bool vectorContains(int from[2], int to[2], const std::vector<Move> &moveVector) const;
+
+//    bool lessThan(const int a[4], const int b[4]) const;
+//    bool equal(const int a[4], const int b[4]) const;
+
     void clearSelectedSquare();
-    void copyBoard(const Piece *original, Piece *copy);
-    bool emptySpace(int row, int col) const;
-    bool emptySpace(int pos[2]) const;
-    bool equalArrays(int a[], int b[], int len) const;
-    bool fiftyMoves() const;
-    bool inCheck(bool white);
-    bool inCheck(bool white, int from[2], int to[2]);
+
     int indexAdjustment(int rowOrColIndex) const;
-    bool insufficientMaterial() const;
-    bool isCheckMate();
-    QString isDraw();
-    bool isPromotion(int from[2], int to[2]);
-    bool isRepeat();
-    bool isSelectable(int row, int col) const;
-    bool isStalemate();
-    bool makeCastleMove(int from[2], int to[2]);
-    void makeMove(int from[2], int to[2]);
-    bool makePassantMove(int from[2], int to[2]);
-    void makeStandardMove(int from[2], int to[2]);
-    QString notationAmbiguity(int from[2], int to[2]);
-    bool opponentPiece(int row, int col, bool white) const;
-    bool opponentPiece(int pos[2], bool white) const;
-    Piece pieceAt(int row, int col) const;
-    Piece pieceAt(int pos[2]) const;
+
+
+
     void pressClock();
     void rotateSelectedSquare();
-    char rowToRank(int row) const;
-    Position savePosition();
     void setSelectedSquare(int row, int col);
-    void setStartingPosition();
-    void updateCastle(int from[2], int to[2]);
-    void updateFiftyMoves(Piece fromPiece, Piece toPiece);
-    void updateGameInfo(int from[2], int to[2], Piece fromPiece, Piece toPiece,
-                        Piece promoPiece, const QString &ambiguityString);
-    void updatePassant(int from[2], int to[2], Piece fromPiece);
-    bool validBishopMove(int from[2], int to[2]) const;
-    bool validKingMove(int from[2], int to[2]);
-    bool validKnightMove(int from[2], int to[2]) const;
-    bool validMove(int from[2], int to[2], bool white, bool allowChecks = false);
-    bool validPawnMove(int from[2], int to[2]) const;
-    bool validQueenMove(int from[2], int to[2]) const;
-    bool validRookMove(int from[2], int to[2]) const;
+
+    void updateGameInfo();
+
 
     const Piece startingPosition_[8][8] = {
         { BlackRook, BlackKnight, BlackBishop, BlackQueen, BlackKing, BlackBishop, BlackKnight, BlackRook },
@@ -106,21 +78,16 @@ private:
         { WhiteRook, WhiteKnight, WhiteBishop, WhiteQueen, WhiteKing, WhiteBishop, WhiteKnight, WhiteRook },
     };
 
-    Piece position_[8][8];
+    GameState gameState_;
+    std::vector<Move> legalMoves_;
+    std::vector<Move> promotionMoves_;
     std::vector<Position> gameHistory_;
-    std::vector<Position> repeatPositions_;
     bool whiteTurn_;
     bool gameOver_;
     int selected_[2];
     int shownMoveNumber_;
     int trueMoveNumber_;
-    bool whiteKingsideCastle_;
-    bool whiteQueensideCastle_;
-    bool blackKingsideCastle_;
-    bool blackQueensideCastle_;
-    int whitePassantPawn_;
-    int blackPassantPawn_;
-    int movesNoProgess_;
+
     QString whiteTimerText_;
     QString blackTimerText_;
     bool choosingPromotionPiece_;

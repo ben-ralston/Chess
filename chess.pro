@@ -2,9 +2,12 @@ TEMPLATE = subdirs
 
 SUBDIRS += \
     application \
+    position \
     settings
 
 application.depends = settings
+
+CONFIG += debug
 
 #CONFIG += c++11
 

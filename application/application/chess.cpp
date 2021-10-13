@@ -11,7 +11,7 @@
 #include "promotion_square.h"
 #include "timer.h"
 #include "position.h"
-#include "piece.h"
+#include "chess/piece.h"
 #include "notation_model.h"
 #include "settings/settings_dialog.h"
 #include "settings/settings.h"
@@ -105,6 +105,7 @@ Chess::Chess(QWidget *parent) :
     ui_->winFrame->raise();
     ui_->winFrame->hide();
 
+    // TODO move Timers inside Game class
     whiteTimer_ = new Timer(this, true);
     blackTimer_ = new Timer(this, false);
 

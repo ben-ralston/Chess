@@ -7,7 +7,7 @@
 
 #include "game.h"
 #include "chess_layout.h"
-#include "piece.h"
+#include "chess/piece.h"
 #include "timer.h"
 #include "notation_model.h"
 #include "settings/settings_dialog.h"

@@ -5,6 +5,7 @@ QT += core gui
 greaterThan(QT_MAJOR_VERSION, 4): QT += widgets
 
 CONFIG += c++11
+CONFIG += debug
 
 # You can make your code fail to compile if it uses deprecated APIs.
 # In order to do so, uncomment the following line.
@@ -25,7 +26,6 @@ HEADERS += \
     application/chess_layout.h \
     application/game.h \
     application/notation_model.h \
-    application/piece.h \
     application/position.h \
     application/promotion_square.h \
     application/square.h \
@@ -34,7 +34,12 @@ HEADERS += \
 FORMS += \
     application/chess.ui
 
+include(../common.pri)
 include(../settings/settings.pri)
+include(../position/position.pri)
+
+#include($$PWD/settings/settings.pri)
+#include($$PWD/common.pri)
 
 # Default rules for deployment.
 qnx: target.path = /tmp/$${TARGET}/bin

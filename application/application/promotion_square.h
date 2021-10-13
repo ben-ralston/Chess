@@ -4,7 +4,7 @@
 #include <QObject>
 
 #include "square.h"
-#include "piece.h"
+#include "chess/piece.h"
 
 class PromotionSquare : public Square
 {
