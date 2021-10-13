@@ -9,9 +9,9 @@
 #include <QString>
 
 #include "chess/piece.h"
-#include "position/position.h"
-#include "position/game_state.h"
-#include "position/move.h"
+#include "rules/position.h"
+#include "rules/game_state.h"
+#include "rules/move.h"
 
 class Game : public QObject
 {

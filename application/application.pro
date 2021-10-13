@@ -5,7 +5,6 @@ QT += core gui
 greaterThan(QT_MAJOR_VERSION, 4): QT += widgets
 
 CONFIG += c++11
-CONFIG += debug
 
 # You can make your code fail to compile if it uses deprecated APIs.
 # In order to do so, uncomment the following line.
@@ -36,7 +35,7 @@ FORMS += \
 
 include(../common.pri)
 include(../settings/settings.pri)
-include(../position/position.pri)
+include(../rules/rules.pri)
 
 #include($$PWD/settings/settings.pri)
 #include($$PWD/common.pri)

@@ -4,23 +4,20 @@ TEMPLATE = lib
 CONFIG += staticlib
 
 CONFIG += c++11
-CONFIG += debug
 
 # You can make your code fail to compile if it uses deprecated APIs.
 # In order to do so, uncomment the following line.
 #DEFINES += QT_DISABLE_DEPRECATED_BEFORE=0x060000    # disables all the APIs deprecated before Qt 6.0.0
 
 SOURCES += \
-    position/game_state.cpp \
-    position/move.cpp \
-    position/position.cpp \
-    position/rules.cpp
+    rules/game_state.cpp \
+    rules/move.cpp \
+    rules/position.cpp
 
 HEADERS += \
-    position/game_state.h \
-    position/move.h \
-    position/position.h \
-    position/rules.h
+    rules/game_state.h \
+    rules/move.h \
+    rules/position.h
 
 include(../common.pri)
 
