@@ -38,6 +38,8 @@ bool Move::operator<(const Move &a) const
     for (int i = 0; i < 3; i++) {
         if (move[i] < a.move[i])
             return true;
+        else if (move[i] > a.move[i])
+            return false;
     }
 
     return move[3] < a.move[3];
