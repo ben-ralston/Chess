@@ -690,48 +690,6 @@ bool GameState::legalQueenMove(int from[2], int to[2], const Piece (&board)[8][8
     return legalBishopMove(from, to, board) || legalRookMove(from, to, board);
 }
 
-bool GameState::makeCastleMove(int from[2], int to[2])
-{
-    // TODO Find better method for comparisons
-    // TODO Maybe save pertinent values as variables
-
-    if (pieceAt(from, board_) == WhiteKing) {
-        if (from[0] == 7 && from[1] == 4 && to[0] == 7 && to[1] == 6) {
-            int rookFrom[2] = {7, 7};
-            int rookTo[2] = {7, 5};
-            makeStandardMove(from, to);
-            makeStandardMove(rookFrom, rookTo);
-            return true;
-        }
-        if (from[0] == 7 && from[1] == 4 && to[0] == 7 && to[1] == 2) {
-            int rookFrom[2] = {7, 0};
-            int rookTo[2] = {7, 3};
-            makeStandardMove(from, to);
-            makeStandardMove(rookFrom, rookTo);
-            return true;
-        }
-    }
-
-    if (pieceAt(from, board_) == BlackKing) {
-        if (from[0] == 0 && from[1] == 4 && to[0] == 0 && to[1] == 6) {
-            int rookFrom[2] = {0, 7};
-            int rookTo[2] = {0, 5};
-            makeStandardMove(from, to);
-            makeStandardMove(rookFrom, rookTo);
-            return true;
-        }
-        if (from[0] == 0 && from[1] == 4 && to[0] == 0 && to[1] == 2) {
-            int rookFrom[2] = {0, 0};
-            int rookTo[2] = {0, 3};
-            makeStandardMove(from, to);
-            makeStandardMove(rookFrom, rookTo);
-            return true;
-        }
-    }
-
-    return false;
-}
-
 bool GameState::makeCastleMove(int from[2], int to[2], Piece (&board)[8][8]) const
 {
     // TODO Find better method for comparisons
@@ -776,11 +734,7 @@ bool GameState::makeCastleMove(int from[2], int to[2], Piece (&board)[8][8]) con
 
 void GameState::makeMove(int from[2], int to[2])
 {
-    if (makeCastleMove(from, to))
-        return;
-    if (makePassantMove(from, to))
-        return;
-    makeStandardMove(from, to);
+    makeMove(from, to, board_);
 }
 
 void GameState::makeMove(int from[2], int to[2], Piece (&board)[8][8]) const
@@ -790,32 +744,6 @@ void GameState::makeMove(int from[2], int to[2], Piece (&board)[8][8]) const
     if (makePassantMove(from, to, board))
         return;
     makeStandardMove(from, to, board);
-}
-
-bool GameState::makePassantMove(int from[2], int to[2])
-{
-    int removeDirection;
-    int passantRow;
-    int passantCol;
-
-    if (pieceAt(from, board_) == WhitePawn) {
-        removeDirection = 1;
-        passantRow = 2;
-        passantCol = blackPassantColumn_;
-    } else if (pieceAt(from, board_) == BlackPawn) {
-        removeDirection = -1;
-        passantRow = 5;
-        passantCol = whitePassantColumn_;
-    } else
-        return false;
-
-    if (to[0] == passantRow && to[1] == passantCol) {
-        makeStandardMove(from, to);
-        board_[passantRow + removeDirection][passantCol] = None;
-        return true;
-    }
-
-    return false;
 }
 
 bool GameState::makePassantMove(int from[2], int to[2], Piece (&board)[8][8]) const
@@ -848,13 +776,6 @@ void GameState::makePromotionMove(int from[], int to[], Piece promotionPiece)
 {
     board_[from[0]][from[1]] = None;
     board_[to[0]][to[1]] = promotionPiece;
-}
-
-void GameState::makeStandardMove(int from[2], int to[2])
-{
-    Piece movingPiece = pieceAt(from, board_);
-    board_[from[0]][from[1]] = None;
-    board_[to[0]][to[1]] = movingPiece;
 }
 
 void GameState::makeStandardMove(int from[2], int to[2], Piece (&board)[8][8]) const

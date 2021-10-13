@@ -58,14 +58,11 @@ private:
     bool legalPawnMove(int from[2], int to[2], const Piece (&board)[8][8]) const;
     bool legalQueenMove(int from[2], int to[2], const Piece (&board)[8][8]) const;
     bool legalRookMove(int from[2], int to[2], const Piece (&board)[8][8]) const;
-    bool makeCastleMove(int from[2], int to[2]);
     bool makeCastleMove(int from[2], int to[2], Piece (&board)[8][8]) const;
     void makeMove(int from[2], int to[2]);
     void makeMove(int from[2], int to[2], Piece (&board)[8][8]) const;
-    bool makePassantMove(int from[2], int to[2]);
     bool makePassantMove(int from[2], int to[2], Piece (&board)[8][8]) const;
     void makePromotionMove(int from[2], int to[2], Piece promotionPiece);
-    void makeStandardMove(int from[2], int to[2]);
     void makeStandardMove(int from[2], int to[2], Piece (&board)[8][8]) const;
     QString notationAmbiguity(int from[2], int to[2]) const;
     bool opponentPiece(int pos[2], bool whiteTurn, const Piece (&board)[8][8]) const;
