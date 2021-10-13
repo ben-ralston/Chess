@@ -8,7 +8,6 @@
 #include "game.h"
 #include "chess_layout.h"
 #include "chess/piece.h"
-#include "timer.h"
 #include "notation_model.h"
 #include "settings/settings_dialog.h"
 
@@ -42,8 +41,6 @@ private:
     Ui::Chess *ui_;
     Game *game_;
     ChessLayout *layout_;
-    Timer *whiteTimer_;
-    Timer *blackTimer_;
     NotationModel *model_;
     SettingsDialog *settingsDialog_;
 };

@@ -12,6 +12,7 @@
 #include "rules/position.h"
 #include "rules/game_state.h"
 #include "rules/move.h"
+#include "timer.h"
 
 class Game : public QObject
 {
@@ -19,6 +20,7 @@ class Game : public QObject
 
 public:
     Game(QObject *parent, int whiteTime, int blackTime, int whiteIncrement, int blackIncrement);
+    ~Game();
     void updateGame();
     void setTimeControl(int whiteTime, int blackTime, int whiteIncrement, int blackIncrement);
     void setFlipBoard(bool newFlipBoard);
@@ -70,6 +72,8 @@ private:
     int promotionFrom_[2];
     int promotionTo_[2];
 
+    Timer *whiteTimer_;
+    Timer *blackTimer_;
     QString whiteTimerText_;
     QString blackTimerText_;
     int whiteTime_;

@@ -18,8 +18,30 @@ Game::Game(QObject *parent, int whiteTime, int blackTime, int whiteIncrement, in
     selectedSquare_{-1, -1},
     flipBoard_(true)
 {
+    whiteTimer_ = new Timer(this, true);
+    blackTimer_ = new Timer(this, false);
+
+    connect(this, &Game::startTimer, whiteTimer_, &Timer::start);
+    connect(this, &Game::pauseTimer, whiteTimer_, &Timer::pause);
+    connect(this, &Game::resetTimer, whiteTimer_, &Timer::reset);
+    connect(whiteTimer_, &Timer::currentTimeText, this, &Game::updateTimerText);
+    connect(whiteTimer_, &Timer::expiredTime, this, &Game::expiredTime);
+
+    connect(this, &Game::startTimer, blackTimer_, &Timer::start);
+    connect(this, &Game::pauseTimer, blackTimer_, &Timer::pause);
+    connect(this, &Game::resetTimer, blackTimer_, &Timer::reset);
+    connect(blackTimer_, &Timer::currentTimeText, this, &Game::updateTimerText);
+    connect(blackTimer_, &Timer::expiredTime, this, &Game::expiredTime);
+
     setTimeControl(whiteTime, blackTime, whiteIncrement, blackIncrement);
+
     reset();
+}
+
+Game::~Game()
+{
+    delete whiteTimer_;
+    delete blackTimer_;
 }
 
 void Game::updateGame()

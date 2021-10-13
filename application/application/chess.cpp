@@ -9,7 +9,6 @@
 #include "chess_layout.h"
 #include "square.h"
 #include "promotion_square.h"
-#include "timer.h"
 #include "chess/piece.h"
 #include "notation_model.h"
 #include "settings/settings_dialog.h"
@@ -101,22 +100,6 @@ Chess::Chess(QWidget *parent) :
     ui_->winFrame->raise();
     ui_->winFrame->hide();
 
-    // TODO move Timers inside Game class
-    whiteTimer_ = new Timer(this, true);
-    blackTimer_ = new Timer(this, false);
-
-    connect(game_, &Game::startTimer, whiteTimer_, &Timer::start);
-    connect(game_, &Game::pauseTimer, whiteTimer_, &Timer::pause);
-    connect(game_, &Game::resetTimer, whiteTimer_, &Timer::reset);
-    connect(whiteTimer_, &Timer::currentTimeText, game_, &Game::updateTimerText);
-    connect(whiteTimer_, &Timer::expiredTime, game_, &Game::expiredTime);
-
-    connect(game_, &Game::startTimer, blackTimer_, &Timer::start);
-    connect(game_, &Game::pauseTimer, blackTimer_, &Timer::pause);
-    connect(game_, &Game::resetTimer, blackTimer_, &Timer::reset);
-    connect(blackTimer_, &Timer::currentTimeText, game_, &Game::updateTimerText);
-    connect(blackTimer_, &Timer::expiredTime, game_, &Game::expiredTime);
-
     setMinimumSize(layout_->minimumSize());
     grabKeyboard();
 
@@ -128,8 +111,6 @@ Chess::~Chess()
     delete ui_;
     delete game_;
     delete layout_;
-    delete whiteTimer_;
-    delete blackTimer_;
 }
 
 void Chess::updateTimerLabels(const QString &text, bool top)
