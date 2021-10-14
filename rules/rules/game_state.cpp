@@ -46,9 +46,10 @@ void GameState::getLegalMoves(std::vector<Move> &output) const
     int to[2];
     for (from[0] = 0; from[0] < 8; from[0]++) {
         for (from[1] = 0; from[1] < 8; from[1]++) {
-            for (to[0] = 0; to[0] < 8; to[0]++) {
-                for (to[1] = 0; to[1] < 8; to[1]++) {
-                    if (opponentPiece(from, !whiteTurn_, board_)) {
+
+            if (opponentPiece(from, !whiteTurn_, board_)) {
+                for (to[0] = 0; to[0] < 8; to[0]++) {
+                    for (to[1] = 0; to[1] < 8; to[1]++) {
                         if (legalMove(from, to, whiteTurn_))
                             output.push_back(Move(from, to));
                     }

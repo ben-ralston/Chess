@@ -10,10 +10,16 @@ public:
     EngineGameState();
 //    EngineGameState(const EngineGameState &gameState);
     EngineGameState(const GameState &gameState, int from[2], int to[2], Piece promotionPiece);
-    float evaluatePosition();
+    float evaluatePosition(const std::vector<Position> &gameHistory) const;
 
 private:
-    int materialCount();
+//    const int rowValue = .03;
+
+    int materialCount() const;
+    float squareControl() const;
+    float squareValue(int row, int col) const;
+
+    float pawnStructure();
 
 };
 

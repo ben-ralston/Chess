@@ -155,7 +155,6 @@ void Game::completePromotion(Piece piece)
     choosingPromotionPiece_ = false;
 
     engineState_ = EngineGameState(gameState_, promotionFrom_, promotionTo_, piece);
-    getEvaluation();
 
     QString notation = gameState_.move(promotionFrom_, promotionTo_, piece);
     emit notateMove(notation);
@@ -255,6 +254,7 @@ void Game::processMove()
 {
     gameHistory_.push_back(gameState_.savePosition());
     GameState::VictoryType victory = gameState_.getOutcome(gameHistory_);
+    getEvaluation();
 
     shownMoveNumber_++;
     trueMoveNumber_++;
@@ -366,7 +366,7 @@ bool Game::vectorContains(int from[2], int to[2], const std::vector<Move> &moveV
 
 void Game::getEvaluation()
 {
-    float evaluation = engineState_.evaluatePosition();
+    float evaluation = engineState_.evaluatePosition(gameHistory_);
 
     emit updateEvaluationLabel(QString::number(evaluation));
 }
