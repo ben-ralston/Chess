@@ -16,8 +16,8 @@ public:
 
     GameState();
 //    GameState(const GameState &a);
-    void getLegalMoves(std::vector<Move> &output) const;
-    void getPromotionMoves(const std::vector<Move> &legalMoves, std::vector<Move> &output) const;
+
+    void getLegalMoves(std::vector<Move> &legalMoves, std::vector<Move> &promotionMoves) const;
     Position savePosition() const;
     VictoryType getOutcome(const std::vector<Position> &gameHistory) const;
     void reset();

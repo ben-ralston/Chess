@@ -38,9 +38,10 @@ GameState::GameState()
 //    movesNoProgess_ = a.movesNoProgess_;
 //}
 
-void GameState::getLegalMoves(std::vector<Move> &output) const
+void GameState::getLegalMoves(std::vector<Move> &legalMoves, std::vector<Move> &promotionMoves) const
 {
-    output.clear();
+    legalMoves.clear();
+    promotionMoves.clear();
 
     int from[2];
     int to[2];
@@ -50,26 +51,16 @@ void GameState::getLegalMoves(std::vector<Move> &output) const
             if (opponentPiece(from, !whiteTurn_, board_)) {
                 for (to[0] = 0; to[0] < 8; to[0]++) {
                     for (to[1] = 0; to[1] < 8; to[1]++) {
-                        if (legalMove(from, to, whiteTurn_))
-                            output.push_back(Move(from, to));
+                        if (legalMove(from, to, whiteTurn_)) {
+                            if (isPromotionMove(from, to))
+                                promotionMoves.push_back(Move(from, to));
+                            else
+                                legalMoves.push_back(Move(from, to));
+                        }
                     }
                 }
             }
         }
-    }
-}
-
-void GameState::getPromotionMoves(const std::vector<Move> &legalMoves, std::vector<Move> &output) const
-{
-    output.clear();
-
-    int from[2];
-    int to[2];
-    for (std::vector<const Move>::iterator it = legalMoves.begin(); it != legalMoves.end(); it++) {
-        it->getFromTo(from, to);
-
-        if (isPromotionMove(from, to))
-            output.push_back(*it);
     }
 }
 

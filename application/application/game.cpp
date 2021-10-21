@@ -206,8 +206,7 @@ void Game::reset()
     choosingPromotionPiece_ = false;
 
     gameState_.reset();
-    gameState_.getLegalMoves(legalMoves_);
-    gameState_.getPromotionMoves(legalMoves_, promotionMoves_);
+    gameState_.getLegalMoves(legalMoves_, promotionMoves_);
 
     engineState_.reset();
     getEvaluation();
@@ -263,8 +262,7 @@ void Game::processMove()
     QString color;
     QString type;
     if (victory == GameState::NA) {
-        gameState_.getLegalMoves(legalMoves_);
-        gameState_.getPromotionMoves(legalMoves_, promotionMoves_);
+        gameState_.getLegalMoves(legalMoves_, promotionMoves_);
 
         whiteTurn_ = !whiteTurn_;
 
