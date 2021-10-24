@@ -18,7 +18,9 @@ using namespace std;
 Game::Game(QObject *parent, int whiteTime, int blackTime, int whiteIncrement, int blackIncrement) :
     QObject(parent),
     selectedSquare_{-1, -1},
-    flipBoard_(true)
+    flipBoard_(true),
+    twoPlayer_(true),
+    whiteVsComputer_(true)
 {
     whiteTimer_ = new Timer(this, true);
     blackTimer_ = new Timer(this, false);
@@ -65,6 +67,16 @@ void Game::setFlipBoard(bool newFlipBoard)
     flipBoard_ = newFlipBoard;
     if (!whiteTurn_)
         rotateSelectedSquare();
+}
+
+void Game::setWhiteVsComputer(bool newWhiteVsComputer)
+{
+    whiteVsComputer_ = newWhiteVsComputer;
+}
+
+void Game::setTwoPlayer(bool newTwoPlayer)
+{
+    twoPlayer_ = newTwoPlayer;
 }
 
 void Game::mousePress(int row, int col)

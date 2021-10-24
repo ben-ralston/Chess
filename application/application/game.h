@@ -25,6 +25,8 @@ public:
     void updateGame();
     void setTimeControl(int whiteTime, int blackTime, int whiteIncrement, int blackIncrement);
     void setFlipBoard(bool newFlipBoard);
+    void setTwoPlayer(bool newTwoPlayer);
+    void setWhiteVsComputer(bool newWhiteVsComputer);
 
 public slots:
     void mousePress(int row, int col);
@@ -83,6 +85,8 @@ private:
     int whiteIncrement_;
     int blackIncrement_;
     bool flipBoard_;
+    bool twoPlayer_;
+    bool whiteVsComputer_;
 };
 
 #endif // GAME_H
