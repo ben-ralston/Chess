@@ -110,9 +110,6 @@ void Game::mousePress(int row, int col)
         emit setPromotionColor(whiteTurn_);
         emit setPromotionVisibilty(true);
     } else if (vectorContains(from, to, legalMoves_)){
-        engineState_ = EngineGameState(gameState_, from, to, None);
-        getEvaluation();
-
         QString notation = gameState_.move(from, to, None);
         emit notateMove(notation);
 
@@ -153,8 +150,6 @@ void Game::completePromotion(Piece piece)
 {
     emit setPromotionVisibilty(false);
     choosingPromotionPiece_ = false;
-
-    engineState_ = EngineGameState(gameState_, promotionFrom_, promotionTo_, piece);
 
     QString notation = gameState_.move(promotionFrom_, promotionTo_, piece);
     emit notateMove(notation);
@@ -208,9 +203,6 @@ void Game::reset()
     gameState_.reset();
     gameState_.getLegalMoves(legalMoves_, promotionMoves_);
 
-    engineState_.reset();
-    getEvaluation();
-
     gameHistory_.clear();
     gameHistory_.push_back(gameState_.savePosition());
 
@@ -253,7 +245,6 @@ void Game::processMove()
 {
     gameHistory_.push_back(gameState_.savePosition());
     GameState::VictoryType victory = gameState_.getOutcome(gameHistory_);
-    getEvaluation();
 
     shownMoveNumber_++;
     trueMoveNumber_++;
@@ -360,11 +351,4 @@ bool Game::vectorContains(int from[2], int to[2], const std::vector<Move> &moveV
     }
 
     return false;
-}
-
-void Game::getEvaluation()
-{
-    float evaluation = engineState_.evaluatePosition(gameHistory_);
-
-    emit updateEvaluationLabel(QString::number(evaluation));
 }

@@ -61,9 +61,6 @@ private:
     int indexAdjustment(int rowOrColIndex) const;
     bool vectorContains(int from[2], int to[2], const std::vector<Move> &moveVector) const;
 
-    void getEvaluation();
-    EngineGameState engineState_;
-
     ApplicationGameState gameState_;
     std::vector<Move> legalMoves_;
     std::vector<Move> promotionMoves_;

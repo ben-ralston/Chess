@@ -33,7 +33,6 @@ Chess::Chess(QWidget *parent) :
     game_ = new Game(this, settings.whiteTime, settings.blackTime, settings.whiteIncrement, settings.blackIncrement);
     connect(game_, &Game::gameEnded, this, &Chess::gameOver);
     connect(game_, &Game::updateTimerLabels, this, &Chess::updateTimerLabels);
-    connect(game_, &Game::updateEvaluationLabel, this, &Chess::updateEvaluationLabel);
     connect(ui_->newGame, &QPushButton::clicked, game_, &Game::reset);
     connect(ui_->winNewGame, &QPushButton::clicked, game_, &Game::reset);
     connect(this, &Chess::keyPress, game_, &Game::keyPress);
@@ -58,14 +57,7 @@ Chess::Chess(QWidget *parent) :
 
     QVBoxLayout *leftLayout = new QVBoxLayout();
     leftLayout->addWidget(ui_->newGame, 0, Qt::AlignTop);
-
-    QSpacerItem *spacer = new QSpacerItem(10, 10, QSizePolicy::Minimum, QSizePolicy::Expanding);
-    leftLayout->addSpacerItem(spacer);
-
-    leftLayout->addWidget(ui_->evaluationLabel, 0, Qt::AlignBottom);
     leftLayout->addWidget(ui_->settingsButton, 0, Qt::AlignBottom);
-
-    leftLayout->setSpacing(10);
 
     QHBoxLayout *topLayout = new QHBoxLayout();
     topLayout->addWidget(ui_->topTimerLabel, 0, Qt::AlignLeft);
@@ -128,11 +120,6 @@ void Chess::updateTimerLabels(const QString &text, bool top)
         ui_->topTimerLabel->setText(text);
     else
         ui_->bottomTimerLabel->setText(text);
-}
-
-void Chess::updateEvaluationLabel(const QString &text)
-{
-    ui_->evaluationLabel->setText(text);
 }
 
 void Chess::gameOver(const QString &color, const QString &victoryType)
