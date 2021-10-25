@@ -12,6 +12,7 @@ struct Move
     Move(int fromRow, int fromCol, int toRow, int toCol);
     void operator=(const Move &a);
     bool operator==(const Move &a) const;
+    bool operator!=(const Move &a) const;
     bool operator<(const Move &a) const;
     bool operator>(const Move &a) const;
     void getFromTo(int (&from)[2], int (&to)[2]) const;

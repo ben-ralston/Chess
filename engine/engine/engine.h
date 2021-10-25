@@ -4,6 +4,7 @@
 #include <QObject>
 
 #include "rules/move.h"
+#include "node.h"
 
 class Engine : public QObject
 {
@@ -20,6 +21,7 @@ signals:
 
 private:
     bool white_;
+    Node *root_;
 };
 
 #endif // ENGINE_H

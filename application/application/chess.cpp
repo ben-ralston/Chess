@@ -122,6 +122,7 @@ void Chess::updateTimerLabels(const QString &text, bool top)
         ui_->bottomTimerLabel->setText(text);
 }
 
+// TODO Hide win frame after reset from settings change
 void Chess::gameOver(const QString &color, const QString &victoryType)
 {
     ui_->winColorLabel->setText(color);

@@ -8,9 +8,10 @@ class EngineGameState : public GameState
 {
 public:
     EngineGameState();
-//    EngineGameState(const EngineGameState &gameState);
+    EngineGameState(const GameState &gameState, Move move);
     EngineGameState(const GameState &gameState, int from[2], int to[2], Piece promotionPiece);
     float evaluatePosition(const std::vector<const Position> &gameHistory) const;
+    bool whiteTurn() const;
 
 private:
 //    const int rowValue = .03;

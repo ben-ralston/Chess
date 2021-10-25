@@ -11,11 +11,13 @@ CONFIG += c++11
 
 SOURCES += \
     engine/engine.cpp \
-    engine/engine_game_state.cpp
+    engine/engine_game_state.cpp \
+    engine/node.cpp
 
 HEADERS += \
     engine/engine.h \
-    engine/engine_game_state.h
+    engine/engine_game_state.h \
+    engine/node.h
 
 include(../common.pri)
 include(../rules/rules.pri)

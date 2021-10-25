@@ -354,7 +354,10 @@ void Game::updatePosition()
 
 void Game::updateClocks()
 {
-    if (flipBoard_) {
+    if (!twoPlayer_ && !whiteVsComputer_) {
+        emit updateTimerLabels(whiteTimerText_, true);
+        emit updateTimerLabels(blackTimerText_, false);
+    } else if (flipBoard_) {
         emit updateTimerLabels(whiteTimerText_, !whiteTurn_);
         emit updateTimerLabels(blackTimerText_, whiteTurn_);
     } else {

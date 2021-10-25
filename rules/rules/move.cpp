@@ -3,19 +3,17 @@
 Move::Move() :
     promotionPiece(None)
 {
-    move[0] = -1;
-    move[1] = -1;
-    move[2] = -1;
-    move[3] = -1;
+    for (int i = 0; i < 4; i++) {
+        move[i] = -1;
+    }
 }
 
 Move::Move(const Move &a) :
     promotionPiece(a.promotionPiece)
 {
-    move[0] = a.move[0];
-    move[1] = a.move[1];
-    move[2] = a.move[2];
-    move[3] = a.move[3];
+    for (int i = 0; i < 4; i++) {
+        move[i] = a.move[i];
+    }
 }
 
 Move::Move(int newMove[4]) :
@@ -47,10 +45,9 @@ Move::Move(int fromRow, int fromCol, int toRow, int toCol) :
 void Move::operator=(const Move &a)
 {
     promotionPiece = a.promotionPiece;
-    move[0] = a.move[0];
-    move[1] = a.move[1];
-    move[2] = a.move[2];
-    move[3] = a.move[3];
+    for (int i = 0; i < 4; i++) {
+        move[i] = a.move[i];
+    }
 }
 
 bool Move::operator==(const Move &a) const
@@ -61,6 +58,11 @@ bool Move::operator==(const Move &a) const
     }
 
     return promotionPiece == a.promotionPiece;
+}
+
+bool Move::operator!=(const Move &a) const
+{
+    return !operator==(a);
 }
 
 // TODO Add check for promotion piece

@@ -9,6 +9,16 @@ EngineGameState::EngineGameState() : GameState()
 {
 }
 
+EngineGameState::EngineGameState(const GameState &gameState, Move move) :
+    GameState(gameState)
+{
+    int from[2];
+    int to[2];
+    move.getFromTo(from, to);
+
+    makeMoveAndUpdate(from, to, move.promotionPiece);
+}
+
 EngineGameState::EngineGameState(const GameState &gameState, int from[2], int to[2], Piece promotionPiece) :
     GameState(gameState)
 {
@@ -33,6 +43,11 @@ float EngineGameState::evaluatePosition(const std::vector<const Position> &gameH
     evaluation += squareControl();
 
     return evaluation;
+}
+
+bool EngineGameState::whiteTurn() const
+{
+    return whiteTurn_;
 }
 
 int EngineGameState::materialCount() const
