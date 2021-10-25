@@ -154,6 +154,7 @@ void Chess::updateSettings(int result)
 
         game_->setTimeControl(settings.whiteTime, settings.blackTime,
                               settings.whiteIncrement, settings.blackIncrement);
+        game_->setFlipBoard(settings.flipBoard);
         game_->setTwoPlayer(settings.twoPlayer);
         game_->setWhiteVsComputer(settings.startWhiteVsComputer);
 
