@@ -5,6 +5,7 @@
 
 struct Position
 {
+    Position(const Position &a);
     Position(const Piece (&newBoard)[8][8], bool newWhiteTurn, bool newKingsideCastle,
              bool newQueensideCastle, int newEnPassantColumn);
     bool operator==(const Position& a) const;
