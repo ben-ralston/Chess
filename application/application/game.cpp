@@ -39,6 +39,8 @@ Game::Game(QObject *parent, int whiteTime, int blackTime, int whiteIncrement, in
 
     setTimeControl(whiteTime, blackTime, whiteIncrement, blackIncrement);
 
+    connect(&engine_, &Engine::chosenMove, this, &Game::engineMove);
+
     reset();
 }
 
@@ -86,6 +88,11 @@ void Game::mousePress(int row, int col)
     if (shownMoveNumber_ != trueMoveNumber_)
         return;
 
+    if (!twoPlayer_) {
+        if (trueMoveNumber_ % 2 == whiteVsComputer_)
+            return;
+    }
+
     if (choosingPromotionPiece_) {
         choosingPromotionPiece_ = false;
         emit setPromotionVisibilty(false);
@@ -125,7 +132,7 @@ void Game::mousePress(int row, int col)
         QString notation = gameState_.move(from, to, None);
         emit notateMove(notation);
 
-        processMove();
+        processMove(Move(from, to));
     } else
         clearSelectedSquare();
 }
@@ -166,7 +173,7 @@ void Game::completePromotion(Piece piece)
     QString notation = gameState_.move(promotionFrom_, promotionTo_, piece);
     emit notateMove(notation);
 
-    processMove();
+    processMove(Move(promotionFrom_, promotionTo_, piece));
 }
 
 void Game::expiredTime(bool white)
@@ -215,6 +222,9 @@ void Game::reset()
     gameState_.reset();
     gameState_.getLegalMoves(legalMoves_, promotionMoves_);
 
+    engine_.setColor(!whiteVsComputer_);
+    engine_.reset();
+
     gameHistory_.clear();
     gameHistory_.push_back(gameState_.savePosition());
 
@@ -226,6 +236,21 @@ void Game::reset()
 
     updatePosition();
     updateClocks();
+
+    if (!twoPlayer_ && !whiteVsComputer_)
+        engine_.getMove(Move());
+}
+
+void Game::engineMove(Move move)
+{
+    int from[2];
+    int to[2];
+    move.getFromTo(from, to);
+
+    QString notation = gameState_.move(from, to, move.promotionPiece);
+    emit notateMove(notation);
+
+    processMove(move);
 }
 
 void Game::setSelectedSquare(int row, int col)
@@ -253,7 +278,7 @@ void Game::rotateSelectedSquare()
     setSelectedSquare(7 - selectedSquare_[0], 7 - selectedSquare_[1]);
 }
 
-void Game::processMove()
+void Game::processMove(Move move)
 {
     gameHistory_.push_back(gameState_.savePosition());
     GameState::VictoryType victory = gameState_.getOutcome(gameHistory_);
@@ -274,6 +299,10 @@ void Game::processMove()
         clearSelectedSquare();
         updatePosition();
         updateClocks();
+
+        if (!twoPlayer_ && whiteVsComputer_ == trueMoveNumber_ % 2) {
+            engine_.getMove(move);
+        }
         return;
     } else if (victory == GameState::WhiteCheckmate || victory == GameState::BlackCheckmate) {
         color = victory == GameState::WhiteCheckmate ? "White Wins!" : "Black Wins!";
@@ -336,6 +365,8 @@ void Game::updateClocks()
 
 int Game::indexAdjustment(int rowOrColIndex) const
 {
+    if (!twoPlayer_ && !whiteVsComputer_)
+        return 7 - rowOrColIndex;
     if (flipBoard_)
         return whiteTurn_ ? rowOrColIndex : 7 - rowOrColIndex;
     else

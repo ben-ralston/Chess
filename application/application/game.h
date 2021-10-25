@@ -9,7 +9,7 @@
 #include <QString>
 
 #include "application_game_state.h"
-#include "engine/engine_game_state.h"
+#include "engine/engine.h"
 #include "chess/piece.h"
 #include "rules/position.h"
 #include "rules/move.h"
@@ -36,6 +36,7 @@ public slots:
     void updateShownMove(int move);
     void updateTimerText(const QString &text, bool white);
     void reset();
+    void engineMove(Move move);
 
 signals:
     void setPiece(int row, int col, Piece piece);
@@ -56,7 +57,7 @@ private:
     void setSelectedSquare(int row, int col);
     void clearSelectedSquare();
     void rotateSelectedSquare();
-    void processMove();
+    void processMove(Move move);
     void pressClock();
     void updatePosition();
     void updateClocks();
@@ -64,6 +65,7 @@ private:
     bool vectorContains(int from[2], int to[2], const std::vector<Move> &moveVector) const;
 
     ApplicationGameState gameState_;
+    Engine engine_;
     std::vector<Move> legalMoves_;
     std::vector<Move> promotionMoves_;
     std::vector<const Position> gameHistory_;
