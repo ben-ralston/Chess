@@ -126,30 +126,22 @@ void Node::generateChildren(int depth)
     for (std::vector<const Move>::iterator it = promotionMoves.begin(); it != promotionMoves.end(); it++) {
         it->getFromTo(from, to);
 
-        Piece piece;
-        if (gameState_.whiteTurn())
-            piece = WhiteQueen;
-        else
-            piece = BlackQueen;
+        Piece pieces[4];
+        if (gameState_.whiteTurn()) {
+            pieces[0] = WhiteKnight;
+            pieces[1] = WhiteBishop;
+            pieces[2] = WhiteRook;
+            pieces[3] = WhiteQueen;
+        } else {
+            pieces[0] = BlackKnight;
+            pieces[1] = BlackBishop;
+            pieces[2] = BlackRook;
+            pieces[3] = BlackQueen;
+        }
 
-        children_.push_back(new Node(this, gameState_, Move(from, to, piece)));
-
-//        Piece pieces[4];
-//        if (gameState_.getWhiteTurn()) {
-//            pieces[0] = WhiteKnight;
-//            pieces[1] = WhiteBishop;
-//            pieces[2] = WhiteRook;
-//            pieces[3] = WhiteQueen;
-//        } else {
-//            pieces[0] = BlackKnight;
-//            pieces[1] = BlackBishop;
-//            pieces[2] = BlackRook;
-//            pieces[3] = BlackQueen;
-//        }
-
-//        for (int i = 0; i < 4; i++) {
-//            children_.push_back(new Node(this, gameState_, from, to, pieces[i]));
-//        }
+        for (int i = 0; i < 4; i++) {
+            children_.push_back(new Node(this, gameState_, Move(from, to, pieces[i])));
+        }
     }
 
     if (depth > 1) {
