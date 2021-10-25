@@ -5,8 +5,8 @@ Move::Move(const Move &a) :
 {
     move[0] = a.move[0];
     move[1] = a.move[1];
-    move[2] = a.move[0];
-    move[3] = a.move[1];
+    move[2] = a.move[2];
+    move[3] = a.move[3];
 }
 
 Move::Move(int newMove[4]) :
