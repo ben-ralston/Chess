@@ -1,5 +1,14 @@
 #include "move.h"
 
+Move::Move() :
+    promotionPiece(None)
+{
+    move[0] = -1;
+    move[1] = -1;
+    move[2] = -1;
+    move[3] = -1;
+}
+
 Move::Move(const Move &a) :
     promotionPiece(a.promotionPiece)
 {
@@ -40,8 +49,8 @@ void Move::operator=(const Move &a)
     promotionPiece = a.promotionPiece;
     move[0] = a.move[0];
     move[1] = a.move[1];
-    move[2] = a.move[0];
-    move[3] = a.move[1];
+    move[2] = a.move[2];
+    move[3] = a.move[3];
 }
 
 bool Move::operator==(const Move &a) const

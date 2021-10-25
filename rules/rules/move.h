@@ -5,6 +5,7 @@
 
 struct Move
 {
+    Move();
     Move(const Move &a);
     Move(int newMove[4]);
     Move(int from[2], int to[2], Piece piece = None);
