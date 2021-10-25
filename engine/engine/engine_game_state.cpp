@@ -15,7 +15,7 @@ EngineGameState::EngineGameState(const GameState &gameState, int from[2], int to
     makeMoveAndUpdate(from, to, promotionPiece);
 }
 
-float EngineGameState::evaluatePosition(const std::vector<Position> &gameHistory) const
+float EngineGameState::evaluatePosition(const std::vector<const Position> &gameHistory) const
 {
     if (gameHistory.size() > 0) {
         VictoryType result = getOutcome(gameHistory);

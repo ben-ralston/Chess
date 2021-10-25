@@ -15,11 +15,11 @@ public:
     enum VictoryType { NA, WhiteCheckmate, BlackCheckmate, DrawRepetition, DrawFifty, DrawMaterial, DrawStalemate };
 
     GameState();
-//    GameState(const GameState &a);
+    GameState(const GameState &a);
 
     void getLegalMoves(std::vector<Move> &legalMoves, std::vector<Move> &promotionMoves) const;
     Position savePosition() const;
-    VictoryType getOutcome(const std::vector<Position> &gameHistory) const;
+    VictoryType getOutcome(const std::vector<const Position> &gameHistory) const;
     void reset();
 
 protected:
@@ -50,7 +50,7 @@ private:
     bool inCheck(bool whiteTurn, const Piece (&board)[8][8]) const;
     bool insufficientMaterial() const;
     bool isPromotionMove(int from[2], int to[2]) const;
-    bool isRepeat(const std::vector<Position> &gameHistory) const;
+    bool isRepeat(const std::vector<const Position> &gameHistory) const;
     bool legalBishopMove(int from[2], int to[2], const Piece (&board)[8][8]) const;
     bool legalKingMove(int from[2], int to[2], const Piece (&board)[8][8]) const;
     bool legalKnightMove(int from[2], int to[2], const Piece (&board)[8][8]) const;

@@ -66,7 +66,7 @@ private:
     ApplicationGameState gameState_;
     std::vector<Move> legalMoves_;
     std::vector<Move> promotionMoves_;
-    std::vector<Position> gameHistory_;
+    std::vector<const Position> gameHistory_;
     bool whiteTurn_;
     bool gameOver_;
     int selectedSquare_[2];

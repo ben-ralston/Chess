@@ -24,19 +24,19 @@ GameState::GameState()
     reset();
 }
 
-//GameState::GameState(const GameState &a)
-//{
-//    copyBoard(a.board_, board_);
+GameState::GameState(const GameState &a)
+{
+    copyBoard(a.board_, board_);
 
-//    whiteTurn_ = a.whiteTurn_;
-//    whiteKingsideCastle_ = a.whiteKingsideCastle_;
-//    whiteQueensideCastle_ = a.whiteQueensideCastle_;
-//    blackKingsideCastle_ = a.blackKingsideCastle_;
-//    blackQueensideCastle_ = a.blackQueensideCastle_;
-//    whitePassantColumn_ = a.whitePassantColumn_;
-//    blackPassantColumn_ = a.blackPassantColumn_;
-//    movesNoProgess_ = a.movesNoProgess_;
-//}
+    whiteTurn_ = a.whiteTurn_;
+    whiteKingsideCastle_ = a.whiteKingsideCastle_;
+    whiteQueensideCastle_ = a.whiteQueensideCastle_;
+    blackKingsideCastle_ = a.blackKingsideCastle_;
+    blackQueensideCastle_ = a.blackQueensideCastle_;
+    whitePassantColumn_ = a.whitePassantColumn_;
+    blackPassantColumn_ = a.blackPassantColumn_;
+    movesNoProgess_ = a.movesNoProgess_;
+}
 
 void GameState::getLegalMoves(std::vector<Move> &legalMoves, std::vector<Move> &promotionMoves) const
 {
@@ -143,7 +143,7 @@ Position GameState::savePosition() const
     return Position(board_, whiteTurn_, kingsideCastle, queensideCastle, columnToSave);
 }
 
-GameState::VictoryType GameState::getOutcome(const std::vector<Position> &gameHistory) const
+GameState::VictoryType GameState::getOutcome(const std::vector<const Position> &gameHistory) const
 {
     if (!canMove(whiteTurn_, board_)) {
         if (inCheck(whiteTurn_, board_))
@@ -458,7 +458,7 @@ bool GameState::isPromotionMove(int from[2], int to[2]) const
         return false;
 }
 
-bool GameState::isRepeat(const std::vector<Position> &gameHistory) const
+bool GameState::isRepeat(const std::vector<const Position> &gameHistory) const
 {
     // TODO Compare repeat results with chess.com
     const Position &currentPosition = gameHistory.back();
@@ -466,8 +466,8 @@ bool GameState::isRepeat(const std::vector<Position> &gameHistory) const
     int repeats = 0;
 
     // Avoid double counting current position, so stop one iteration early
-    std::vector<const Position>::iterator endIterator = --(gameHistory.end());
-    for (std::vector<const Position>::iterator it = gameHistory.begin(); it != endIterator; it++) {
+    std::vector<const Position>::const_iterator endIterator = --(gameHistory.end());
+    for (std::vector<const Position>::const_iterator it = gameHistory.begin(); it != endIterator; it++) {
         if (currentPosition == *it)
             if (++repeats == 2)
                 return true;
