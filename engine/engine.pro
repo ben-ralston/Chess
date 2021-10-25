@@ -1,4 +1,5 @@
 QT -= gui
+QT += concurrent
 
 TEMPLATE = lib
 CONFIG += staticlib
